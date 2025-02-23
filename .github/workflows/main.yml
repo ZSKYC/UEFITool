@@ -43,6 +43,7 @@ jobs:
           zip -qryj ../UEFITool/dist/UEFIExtract_NE_${UEFITOOL_VER}_universal_mac.zip ./UEFIExtract/UEFIExtract
           zip -qryj ../UEFITool/dist/UEFIFind_NE_${UEFITOOL_VER}_universal_mac.zip ./UEFIFind/UEFIFind
           cd UEFITool
+          codesign -fs - --deep UEFITool.app
           zip -qry ../../UEFITool/dist/UEFITool_NE_${UEFITOOL_VER}_universal_mac.zip ./UEFITool.app
       - name: Upload to artifacts
         uses: actions/upload-artifact@v4

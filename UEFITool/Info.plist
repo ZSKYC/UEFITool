@@ -22,7 +22,7 @@
 	<key>CFBundleIconFile</key>
 	<string>uefitool</string>
 	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<string>me.coderush.UEFITool</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleSignature</key>

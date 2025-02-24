@@ -40,6 +40,8 @@ jobs:
         shell: bash
         run: |
           UEFITOOL_VER=$(cat ../UEFITool/version.h | grep PROGRAM_VERSION | cut -d'"' -f2 | sed 's/NE alpha /A/') ; \
+          codesign -fs - UEFIExtract/UEFIExtract
+          codesign -fs - UEFIFind/UEFIFind
           zip -qryj ../UEFITool/dist/UEFIExtract_NE_${UEFITOOL_VER}_universal_mac.zip ./UEFIExtract/UEFIExtract
           zip -qryj ../UEFITool/dist/UEFIFind_NE_${UEFITOOL_VER}_universal_mac.zip ./UEFIFind/UEFIFind
           cd UEFITool

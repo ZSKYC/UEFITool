@@ -2509,6 +2509,7 @@ USTATUS FfsParser::parseGuidedSectionHeader(const UByteArray & section, const UI
     }
     else if (baGuid == EFI_GUIDED_SECTION_LZMA
         || baGuid == EFI_GUIDED_SECTION_LZMA_HP
+        || baGuid == EFI_GUIDED_SECTION_LZMA_MS
         || baGuid == EFI_GUIDED_SECTION_LZMAF86
         || baGuid == EFI_GUIDED_SECTION_TIANO
         || baGuid == EFI_GUIDED_SECTION_GZIP) {
@@ -2998,7 +2999,8 @@ USTATUS FfsParser::parseGuidedSectionBody(const UModelIndex & index)
     }
     // LZMA compressed section
     else if (baGuid == EFI_GUIDED_SECTION_LZMA
-             || baGuid == EFI_GUIDED_SECTION_LZMA_HP) {
+             || baGuid == EFI_GUIDED_SECTION_LZMA_HP
+             || baGuid == EFI_GUIDED_SECTION_LZMA_MS) {
         USTATUS result = decompress(model->body(index), EFI_CUSTOMIZED_COMPRESSION, algorithm, dictionarySize, processed, efiDecompressed);
         if (result) {
             msg(usprintf("%s: decompression failed with error ", __FUNCTION__) + errorCodeToUString(result), index);

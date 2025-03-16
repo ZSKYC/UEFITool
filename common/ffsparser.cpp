@@ -1540,7 +1540,7 @@ continue_searching: {}
             if (restSize < fdmHeader->Size)
                 continue;
             
-            if (fdmHeader->Revision > 3) {
+            if (fdmHeader->Revision > 4) {
                 msg(usprintf("%s: Insyde Flash Device Map candidate with unknown revision %u", __FUNCTION__, fdmHeader->Revision), index);
                 continue;
             }

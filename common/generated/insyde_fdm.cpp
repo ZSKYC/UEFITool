@@ -1,7 +1,6 @@
 // This is a generated file! Please edit source .ksy file and use kaitai-struct-compiler to rebuild
 
 #include "insyde_fdm.h"
-#include "../kaitai/exceptions.h"
 
 insyde_fdm_t::insyde_fdm_t(kaitai::kstream* p__io, kaitai::kstruct* p__parent, insyde_fdm_t* p__root) : kaitai::kstruct(p__io) {
     m__parent = p__parent;
@@ -16,29 +15,23 @@ insyde_fdm_t::insyde_fdm_t(kaitai::kstream* p__io, kaitai::kstruct* p__parent, i
 
 void insyde_fdm_t::_read() {
     m_signature = m__io->read_u4le();
-    if (!(signature() == 1296320072)) {
-        throw kaitai::validation_not_equal_error<uint32_t>(1296320072, signature(), _io(), std::string("/seq/0"));
-    }
     m_store_size = m__io->read_u4le();
     m_data_offset = m__io->read_u4le();
     m_entry_size = m__io->read_u4le();
     m_entry_format = m__io->read_u1();
     m_revision = m__io->read_u1();
-    if (!( ((revision() == 1) || (revision() == 2) || (revision() == 3)) )) {
-        throw kaitai::validation_not_any_of_error<uint8_t>(revision(), _io(), std::string("/seq/5"));
-    }
     m_num_extensions = m__io->read_u1();
     m_checksum = m__io->read_u1();
     m_fd_base_address = m__io->read_u8le();
     n_extensions = true;
-    if (revision() == 3) {
+    if (revision() > 2) {
         n_extensions = false;
         m__raw_extensions = m__io->read_bytes((num_extensions() * 4));
         m__io__raw_extensions = std::unique_ptr<kaitai::kstream>(new kaitai::kstream(m__raw_extensions));
         m_extensions = std::unique_ptr<fdm_extensions_t>(new fdm_extensions_t(m__io__raw_extensions.get(), this, m__root));
     }
     n_board_ids = true;
-    if ( ((revision() == 3) && (extensions()->extensions()->at(1)->count() > 0)) ) {
+    if ( ((revision() > 2) && (extensions()->extensions()->at(1)->count() > 0)) ) {
         n_board_ids = false;
         m_board_ids = std::unique_ptr<fdm_board_ids_t>(new fdm_board_ids_t(m__io, this, m__root));
     }

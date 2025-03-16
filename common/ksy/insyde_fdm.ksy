@@ -12,7 +12,6 @@ meta:
 seq:
 - id: signature
   type: u4
-  valid: 0x4D444648 # HFDM
 - id: store_size
   type: u4
 - id: data_offset
@@ -23,8 +22,6 @@ seq:
   type: u1
 - id: revision
   type: u1
-  valid:
-    any-of: [1, 2, 3]
 - id: num_extensions
   type: u1
 - id: checksum
@@ -34,10 +31,11 @@ seq:
 - id: extensions
   type: fdm_extensions
   size: num_extensions * sizeof<fdm_extension>
-  if: revision == 3
+  if: revision > 2
 - id: board_ids
   type: fdm_board_ids
-  if: revision == 3 and extensions.extensions[1].count > 0
+  if: revision > 2 and extensions.extensions[1].count > 0
+#TODO: need to find a sample with revision == 4 and extensions.extensions[2].count > 0
 - id: entries
   type: fdm_entries
   size: store_size - data_offset

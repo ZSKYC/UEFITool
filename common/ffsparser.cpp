@@ -1340,17 +1340,6 @@ USTATUS FfsParser::parseVolumeHeader(const UByteArray & volume, const UINT32 loc
 bool FfsParser::microcodeHeaderValid(const INTEL_MICROCODE_HEADER* ucodeHeader)
 {
     bool reservedBytesValid = true;
-
-    // Check CpuFlags reserved bytes to be zero
-    for (UINT32 i = 0; i < sizeof(ucodeHeader->ProcessorFlagsReserved); i++) {
-        if (ucodeHeader->ProcessorFlagsReserved[i] != 0x00) {
-            reservedBytesValid = false;
-            break;
-        }
-    }
-    if (!reservedBytesValid) {
-        return false;
-    }
     
     // Check data size to be multiple of 4 and less than 0x1000000
     if (ucodeHeader->DataSize % 4 != 0 ||
@@ -1389,8 +1378,8 @@ bool FfsParser::microcodeHeaderValid(const INTEL_MICROCODE_HEADER* ucodeHeader)
         ucodeHeader->DateYear > 0x2049) {
         return FALSE;
     }
-    // Check HeaderVersion to be 1.
-    if (ucodeHeader->HeaderVersion != 1) {
+    // Check HeaderType to be 1.
+    if (ucodeHeader->HeaderType != 1) {
         return FALSE;
     }
     // Check LoaderRevision to be 1.
@@ -4268,13 +4257,13 @@ USTATUS FfsParser::parseIntelMicrocodeHeader(const UByteArray & microcode, const
                 
                 // Recalculate checksum after patching
                 tempUcodeHeader->Checksum = 0;
-                tempUcodeHeader->ProcessorFlags = entry->ProcessorFlags;
+                tempUcodeHeader->PlatformIds = entry->PlatformIds;
                 tempUcodeHeader->ProcessorSignature = entry->ProcessorSignature;
                 UINT32 entryCalculated = calculateChecksum32((const UINT32*)tempMicrocode.constData(), sizeof(INTEL_MICROCODE_HEADER) + dataSize);
                 
-                extendedHeaderInfo += usprintf("\nCPU signature #%u: %08Xh\nCPU flags #%u: %02Xh\nChecksum #%u: %08Xh, ",
+                extendedHeaderInfo += usprintf("\nCPU signature #%u: %08Xh\nCPU platform Id #%u: %08Xh\nChecksum #%u: %08Xh, ",
                                                i + 1, entry->ProcessorSignature,
-                                               i + 1, entry->ProcessorFlags,
+                                               i + 1, entry->PlatformIds,
                                                i + 1, entry->Checksum)
                 + (entry->Checksum == entryCalculated ? UString("valid") : usprintf("invalid, should be %08Xh", entryCalculated));
             }
@@ -4293,7 +4282,7 @@ USTATUS FfsParser::parseIntelMicrocodeHeader(const UByteArray & microcode, const
     // Add info
     UString name("Intel microcode");
     UString info = usprintf("Full size: %Xh (%u)\nHeader size: 0h (0u)\nBody size: %Xh (%u)\nTail size: 0h (0u)\n"
-                            "Date: %02X.%02X.%04x\nCPU signature: %08Xh\nRevision: %08Xh\nCPU flags: %02Xh\nChecksum: %08Xh, ",
+                            "Date: %02X.%02X.%04x\nCPU signature: %08Xh\nRevision: %08Xh\nMinimal update revision: %08Xh\nCPU platform Id: %08Xh\nChecksum: %08Xh, ",
                             (UINT32)microcodeBinary.size(), (UINT32)microcodeBinary.size(),
                             (UINT32)microcodeBinary.size(), (UINT32)microcodeBinary.size(),
                             ucodeHeader->DateDay,
@@ -4301,7 +4290,8 @@ USTATUS FfsParser::parseIntelMicrocodeHeader(const UByteArray & microcode, const
                             ucodeHeader->DateYear,
                             ucodeHeader->ProcessorSignature,
                             ucodeHeader->UpdateRevision,
-                            ucodeHeader->ProcessorFlags,
+                            ucodeHeader->UpdateRevisionMin,
+                            ucodeHeader->PlatformIds,
                             ucodeHeader->Checksum)
     + (ucodeHeader->Checksum == calculated ? UString("valid") : usprintf("invalid, should be %08Xh", calculated))
     + extendedHeaderInfo;

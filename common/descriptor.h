@@ -72,43 +72,18 @@ typedef struct FLASH_DESCRIPTOR_MAP_ {
     UINT32 DescriptorVersion;           // Reserved prior to Coffee Lake
 } FLASH_DESCRIPTOR_MAP;
 
-// Component section
+// Component section structure
 // Flash parameters DWORD structure
 typedef struct FLASH_PARAMETERS_ {
-    UINT8 FirstChipDensity : 4;
-    UINT8 SecondChipDensity : 4;
-    UINT8 : 8;
+    UINT16 : 16;
     UINT8 : 1;
     UINT8 ReadClockFrequency : 3; // Hardcoded value of 20 Mhz (000b) in v1 descriptors
-    UINT8 FastReadEnabled : 1;
-    UINT8 FastReadFrequency : 3;
-    UINT8 FlashWriteFrequency : 3;
-    UINT8 FlashReadStatusFrequency : 3;
-    UINT8 DualOutputFastReadSupported : 1;
-    UINT8 : 1;
+    UINT8 : 4;
+    UINT8 : 8;
 } FLASH_PARAMETERS;
 
-// Flash densities
-#define FLASH_DENSITY_512KB   0x00
-#define FLASH_DENSITY_1MB     0x01
-#define FLASH_DENSITY_2MB     0x02
-#define FLASH_DENSITY_4MB     0x03
-#define FLASH_DENSITY_8MB     0x04
-#define FLASH_DENSITY_16MB    0x05
-#define FLASH_DENSITY_32MB    0x06
-#define FLASH_DENSITY_64MB    0x07
-#define FLASH_DENSITY_UNUSED  0x0F
-
-// Flash frequencies
-#define FLASH_FREQUENCY_20MHZ       0x00
-#define FLASH_FREQUENCY_33MHZ       0x01
-#define FLASH_FREQUENCY_48MHZ       0x02
-#define FLASH_FREQUENCY_50MHZ_30MHZ 0x04
-#define FLASH_FREQUENCY_17MHZ       0x06
-
-// Component section structure
 typedef struct FLASH_DESCRIPTOR_COMPONENT_SECTION_ {
-    FLASH_PARAMETERS FlashParameters;
+    FLASH_PARAMETERS FlashParameters;      // Bit field with SPI flash parameters, changes almost every CPU generation, so will remain mostly undefined for now
     UINT8            InvalidInstruction0;  // Instructions for SPI chip, that must not be executed, like FLASH ERASE
     UINT8            InvalidInstruction1;  //
     UINT8            InvalidInstruction2;  //

@@ -326,8 +326,8 @@ USTATUS FfsParser::parseIntelImage(const UByteArray & intelImage, const UINT32 l
     const FLASH_DESCRIPTOR_COMPONENT_SECTION* componentSection = (const FLASH_DESCRIPTOR_COMPONENT_SECTION*)calculateAddress8((UINT8*)descriptor, descriptorMap->ComponentBase);
     
     UINT8 descriptorVersion = 2;
-    // Check descriptor version by getting hardcoded value of FlashParameters.ReadClockFrequency
-    if (componentSection->FlashParameters.ReadClockFrequency == FLASH_FREQUENCY_20MHZ)
+    // Check descriptor version by getting hardcoded value of zero in FlashParameters.ReadClockFrequency
+    if (componentSection->FlashParameters.ReadClockFrequency == 0)
         descriptorVersion = 1;
     
     // Regions

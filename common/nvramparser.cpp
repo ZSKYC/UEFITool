@@ -925,6 +925,7 @@ not_fdc:
                 
                 if (variable->len_name() == 3 && variable->name() == "EOF") {
                     header = volumeBody.mid(storeOffset + entryOffset, 4);
+                    body.clear();
                 }
                 else {
                     header = volumeBody.mid(storeOffset + entryOffset, sizeof(UINT8) + (UINT32)variable->len_name() + sizeof(UINT16));

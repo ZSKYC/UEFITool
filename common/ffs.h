@@ -924,6 +924,44 @@ extern const UByteArray INSYDE_FLASH_MAP_REGION_DXE_FV_GUID;
 extern const UByteArray INSYDE_FLASH_MAP_REGION_PEI_FV_GUID;
 extern const UByteArray INSYDE_FLASH_MAP_REGION_UNSIGNED_FV_GUID;
 
+//
+// Dell variables
+//
+#define DVAR_STORE_SIGNATURE 0x52415644
+
+typedef struct _DVAR_STORE_HEADER {
+  UINT32 Signature;
+  UINT32 StoreSizeC;
+  UINT8  FlagsC;
+  // DVAR_ENTRY Entries[];
+} DVAR_STORE_HEADER;
+
+typedef struct _DVAR_ENTRY_HEADER {
+    UINT8 StateC; // Values are stored in 2-complement format, can be converted with (Val = 0xFF - ValC)
+    UINT8 FlagsC;
+    UINT8 TypeC;
+    UINT8 AttributesC;
+    UINT8 NamespaceIdC;
+    // The rest is variable depending on Flags and Types
+    // EFI_GUID NamespaceGuid;
+    // UINT8 or UINT16 NameId;
+    // UINT8 or UINT16 DataSize;
+    // UINT8 Data[DataSize];
+} DVAR_ENTRY_HEADER;
+
+#define DVAR_ENTRY_STATE_STORING  0x01
+#define DVAR_ENTRY_STATE_STORED   0x05
+#define DVAR_ENTRY_STATE_DELETING 0x15
+#define DVAR_ENTRY_STATE_DELETED  0x55
+
+//#define DVAR_ENTRY_FLAG_NAME_UTF8    0x01 // Haven't seen any samples yet, so this is a guesswork for now
+#define DVAR_ENTRY_FLAG_NAME_ID        0x02
+#define DVAR_ENTRY_FLAG_NAMESPACE_GUID 0x04 // This kind of variables is used to store namespace guids, the "deleted" state for them is ignored
+
+#define DVAR_ENTRY_TYPE_NAME_ID_8_DATA_SIZE_8   0x00 // Both NameId and DataSize are UINT8
+#define DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_8  0x04 // NameId is UINT16, DataSize is UINT8
+#define DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_16 0x05 // Both NameId and DataSize are UINT16
+
 // Restore previous packing rules
 #pragma pack(pop)
 

@@ -60,6 +60,7 @@ UString itemTypeToUString(const UINT8 type)
         case Types::CmdbStore:                  return UString("CMDB store");
         case Types::PhoenixFlashMapStore:       return UString("FlashMap store");
         case Types::InsydeFlashDeviceMapStore:  return UString("FlashDeviceMap store");
+        case Types::DellDvarStore:              return UString("DVAR store");
         case Types::NvarGuidStore:              return UString("NVAR GUID store");
         case Types::NvarEntry:                  return UString("NVAR entry");
         case Types::VssEntry:                   return UString("VSS entry");
@@ -67,6 +68,7 @@ UString itemTypeToUString(const UINT8 type)
         case Types::EvsaEntry:                  return UString("EVSA entry");
         case Types::PhoenixFlashMapEntry:       return UString("FlashMap entry");
         case Types::InsydeFlashDeviceMapEntry:  return UString("FlashDeviceMap entry");
+        case Types::DellDvarEntry:              return UString("DVAR entry");
         case Types::Microcode:                  return UString("Microcode");
         case Types::SlicData:                   return UString("SLIC data");
         case Types::FptStore:                   return UString("FPT store");
@@ -145,6 +147,12 @@ UString itemSubtypeToUString(const UINT8 type, const UINT8 subtype)
             if      (subtype == Subtypes::VolumeFlashMapEntry)          return UString("Volume");
             else if (subtype == Subtypes::DataFlashMapEntry)            return UString("Data");
             else if (subtype == Subtypes::UnknownFlashMapEntry)         return UString("Unknown");
+            break;
+        case Types::DellDvarEntry:
+            if      (subtype == Subtypes::InvalidDvarEntry)             return UString("Invalid");
+            else if (subtype == Subtypes::NamespaceGuidDvarEntry)       return UString("NamespaceGuid");
+            else if (subtype == Subtypes::NameIdDvarEntry)              return UString("NameId");
+            else if (subtype == Subtypes::UnknownDvarEntry)             return UString("Unknown");
             break;
         case Types::Microcode:
             if      (subtype == Subtypes::IntelMicrocode)               return UString("Intel");

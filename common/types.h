@@ -51,6 +51,7 @@ namespace Types {
         EvsaStore,
         PhoenixFlashMapStore,
         InsydeFlashDeviceMapStore,
+        DellDvarStore,
         CmdbStore,
         NvarGuidStore,
         NvarEntry,
@@ -59,6 +60,7 @@ namespace Types {
         EvsaEntry,
         PhoenixFlashMapEntry,
         InsydeFlashDeviceMapEntry,
+        DellDvarEntry,
         Microcode,
         SlicData,
         IfwiHeader,
@@ -159,42 +161,49 @@ namespace Subtypes {
         UnknownFlashMapEntry,
     };
 
+    enum DvarEntrySubtypes {
+        InvalidDvarEntry = 180,
+        NamespaceGuidDvarEntry,
+        NameIdDvarEntry,
+        UnknownDvarEntry
+    };
+
     enum MicrocodeSubtypes {
-        IntelMicrocode = 180,
+        IntelMicrocode = 190,
         AmdMicrocode,
     };
 
     enum SlicDataSubtypes {
-        PubkeySlicData = 190,
+        PubkeySlicData = 200,
         MarkerSlicData,
     };
 
     // ME-specific
     enum IfwiPartitionSubtypes {
-        DataIfwiPartition = 200,
+        DataIfwiPartition = 210,
         BootIfwiPartition,
     };
 
     enum FptEntrySubtypes {
-        ValidFptEntry = 210,
+        ValidFptEntry = 220,
         InvalidFptEntry,
     };
 
     enum FptPartitionSubtypes {
-        CodeFptPartition = 220,
+        CodeFptPartition = 230,
         DataFptPartition,
         GlutFptPartition,
     };
 
     enum CpdPartitionSubtypes {
-        ManifestCpdPartition = 230,
+        ManifestCpdPartition = 240,
         MetadataCpdPartition,
         KeyCpdPartition,
         CodeCpdPartition,
     };
 
     enum StartupApDataEntrySubtypes {
-        x86128kStartupApDataEntry = 240,
+        x86128kStartupApDataEntry = 250,
     };
 }
 

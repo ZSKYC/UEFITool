@@ -39,6 +39,10 @@
 #include "kaitai/kaitaistream.h"
 #include "generated/insyde_fdm.h"
 
+#ifdef U_ENABLE_NVRAM_PARSING_SUPPORT
+#include "generated/dell_dvar.h"
+#endif
+
 // Constructor
 FfsParser::FfsParser(TreeModel* treeModel) : model(treeModel),
 imageBase(0), addressDiff(0x100000000ULL), protectedRegionsBase(0) {
@@ -839,6 +843,15 @@ USTATUS FfsParser::parseRawArea(const UModelIndex & index)
     UByteArray data = model->body(index);
     UINT32 headerSize = (UINT32)model->header(index).size();
     
+    // Obtain required information from parent volume, if it exists
+    UINT8 emptyByte = 0xFF;
+    UModelIndex parentVolumeIndex = model->findParentOfType(index, Types::Volume);
+    if (parentVolumeIndex.isValid() && model->hasEmptyParsingData(parentVolumeIndex) == false) {
+        UByteArray data = model->parsingData(parentVolumeIndex);
+        const VOLUME_PARSING_DATA* pdata = (const VOLUME_PARSING_DATA*)data.constData();
+        emptyByte = pdata->emptyByte;
+    }
+    
     USTATUS result;
     UString name;
     UString info;
@@ -922,9 +935,7 @@ USTATUS FfsParser::parseRawArea(const UModelIndex & index)
             } else {
                 // Show messages
                 if (itemSize != itemAltSize)
-                    msg(usprintf("%s: volume size stored in header %Xh differs from calculated using block map %Xh", __FUNCTION__,
-                                 itemSize, itemAltSize),
-                        volumeIndex);
+                    msg(usprintf("%s: volume size stored in header %Xh differs from calculated using block map %Xh", __FUNCTION__, itemSize, itemAltSize), volumeIndex);
             }
         }
         else if (itemType == Types::Microcode) {
@@ -966,11 +977,10 @@ USTATUS FfsParser::parseRawArea(const UModelIndex & index)
                 
                 // Add info
                 UString name = UString("Insyde H2O FlashDeviceMap");
-                UString info = usprintf("Signature: HFDM\nFull size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nData offset: %Xh\nEntry size: %Xh (%u)\nEntry format: %02Xh\nRevision: %02Xh\nExtension count: %u\nFlash descriptor base address: %08Xh\nChecksum: %02Xh",
+                UString info = usprintf("Signature: HFDM\nFull size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nEntry size: %Xh (%u)\nEntry format: %02Xh\nRevision: %02Xh\nExtension count: %u\nFlash descriptor base address: %08Xh\nChecksum: %02Xh",
                                         storeSize, storeSize,
                                         (UINT32)header.size(), (UINT32)header.size(),
                                         (UINT32)body.size(), (UINT32)body.size(),
-                                        parsed.data_offset(),
                                         parsed.entry_size(), parsed.entry_size(),
                                         parsed.entry_format(),
                                         parsed.revision(),
@@ -1062,9 +1072,201 @@ USTATUS FfsParser::parseRawArea(const UModelIndex & index)
                 }
             }
             catch (...) {
-                // Parsing failed
+                // Parsing failed, need to add the candidate as Padding
+                UByteArray padding = data.mid(itemOffset, itemSize);
+                
+                // Get info
+                name = UString("Padding");
+                info = usprintf("Full size: %Xh (%u)", (UINT32)padding.size(), (UINT32)padding.size());
+                
+                // Add tree item
+                model->addItem(headerSize + itemOffset, Types::Padding, getPaddingType(padding), name, UString(), info, UByteArray(), padding, UByteArray(), Fixed, index);
             }
         }
+#ifdef U_ENABLE_NVRAM_PARSING_SUPPORT
+        else if (itemType == Types::DellDvarStore) {
+            try {
+                UByteArray dvar = data.mid(itemOffset, itemSize);
+                umemstream is(dvar.constData(), dvar.size());
+                kaitai::kstream ks(&is);
+                dell_dvar_t parsed(&ks);
+                UINT32 storeSize = (UINT32)dvar.size();
+                
+                // Construct header and body
+                UByteArray header = dvar.left(parsed.data_offset());
+                UByteArray body = dvar.mid(header.size(), storeSize - header.size());
+                
+                // Add info
+                UString name = UString("Dell DVAR Store");
+                UString info = usprintf("Signature: DVAR\nFull size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nFlags: %02Xh",
+                                        storeSize, storeSize,
+                                        (UINT32)header.size(), (UINT32)header.size(),
+                                        (UINT32)body.size(), (UINT32)body.size(),
+                                        parsed.flags());
+                
+                // Add header tree item
+                UModelIndex headerIndex = model->addItem(headerSize + itemOffset, Types::DellDvarStore, 0, name, UString(), info, header, body, UByteArray(), Fixed, index);
+                
+                // Add entries
+                UINT32 entryOffset = parsed.data_offset();
+                for (const auto & entry : *parsed.entries()) {
+                    // This is the terminating entry, needs special processing
+                    if (entry->_is_null_flags_c()) {
+                        // Add free space or padding after all entries, if needed
+                        if (entryOffset < storeSize) {
+                            UByteArray freeSpace = dvar.mid(entryOffset, storeSize - entryOffset);
+                            // Add info
+                            info = usprintf("Full size: %Xh (%u)", (UINT32)freeSpace.size(), (UINT32)freeSpace.size());
+                            
+                            // Check that remaining unparsed bytes are actually empty
+                            if (freeSpace.count(emptyByte) == freeSpace.size()) { // Free space
+                                // Add tree item
+                                model->addItem(entryOffset, Types::FreeSpace, 0, UString("Free space"), UString(), info, UByteArray(), freeSpace, UByteArray(), Fixed, headerIndex);
+                            }
+                            else {
+                                // Add tree item
+                                model->addItem(entryOffset, Types::Padding, getPaddingType(freeSpace), UString("Padding"), UString(), info, UByteArray(), freeSpace, UByteArray(), Fixed, headerIndex);
+                            }
+                        }
+                        break;
+                    }
+                    
+                    // This is a normal entry
+                    // Check state to be known
+                    if (entry->state() != DVAR_ENTRY_STATE_STORING &&
+                        entry->state() != DVAR_ENTRY_STATE_STORED &&
+                        entry->state() != DVAR_ENTRY_STATE_DELETING &&
+                        entry->state() != DVAR_ENTRY_STATE_DELETED){
+                        // TODO: Add the rest as padding, as we encountered an unexpected entry and can't guarantee that the rest got parsed correctly
+                    }
+                    
+                    // Check flags to be known
+                    if (entry->flags() != DVAR_ENTRY_FLAG_NAME_ID &&
+                        entry->flags() != DVAR_ENTRY_FLAG_NAME_ID + DVAR_ENTRY_FLAG_NAMESPACE_GUID) {
+                        // TODO: Add the rest as padding, as we encountered an unexpected entry and can't guarantee that the rest got parsed correctly
+                    }
+                    
+                    // Check type to be known
+                    if (entry->type() != DVAR_ENTRY_TYPE_NAME_ID_8_DATA_SIZE_8 &&
+                        entry->type() != DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_8 &&
+                        entry->type() != DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_16) {
+                        // TODO: Add the rest as padding, as we encountered an unexpected entry and can't guarantee that the rest got parsed correctly
+                    }
+                    
+                    UINT32 headerSize;
+                    UINT32 bodySize;
+                    UINT32 entrySize;
+                    UINT32 nameId;
+                    UINT8 subtype;
+                    UString text;
+                    
+                    // TODO: find a Dell image with NameUtf8 entries
+                    
+                    // NamespaceGUID entry
+                    if (entry->flags() == DVAR_ENTRY_FLAG_NAME_ID + DVAR_ENTRY_FLAG_NAMESPACE_GUID) {
+                        // State of this variable only applies to the NameId part, not the NamespaceGuid part
+                        // This kind of variables with deleted state till need to be shown as valid
+                        subtype = Subtypes::NamespaceGuidDvarEntry;
+                        EFI_GUID guid = *(const EFI_GUID*)(entry->namespace_guid().c_str());
+                        headerSize = sizeof(DVAR_ENTRY_HEADER) + sizeof(EFI_GUID);
+                        if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_8_DATA_SIZE_8) {
+                            nameId = entry->name_id_8();
+                            bodySize = entry->len_data_8();
+                            headerSize += sizeof(UINT8) + sizeof(UINT8);
+                        }
+                        else if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_8) {
+                            nameId = entry->name_id_16();
+                            bodySize = entry->len_data_8();
+                            headerSize += sizeof(UINT16) + sizeof(UINT8);
+                        }
+                        else if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_16) {
+                            nameId = entry->name_id_16();
+                            bodySize = entry->len_data_16();
+                            headerSize += sizeof(UINT16) + sizeof(UINT16);
+                        }
+                        
+                        entrySize = headerSize + bodySize;
+                        header = dvar.mid(entryOffset, headerSize);
+                        body = dvar.mid(entryOffset + headerSize, bodySize);
+                       
+                        name = usprintf("%X:%X", entry->namespace_id(), nameId);
+                        text = guidToUString(guid);
+                        info = usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nState: %02Xh\nFlags: %02Xh\nType: %02Xh\nNamespaceId: %Xh\nNameId: %Xh\n",
+                                        entrySize, entrySize,
+                                        (UINT32)header.size(), (UINT32)header.size(),
+                                        (UINT32)body.size(), (UINT32)body.size(),
+                                        entry->state(),
+                                        entry->flags(),
+                                        entry->type(),
+                                        entry->namespace_id(),
+                                        nameId)
+                            + UString("NamespaceGuid: ") + guidToUString(guid, false);
+                    }
+                    // NameId entry
+                    else {
+                        subtype = Subtypes::NameIdDvarEntry;
+                        headerSize = sizeof(DVAR_ENTRY_HEADER);
+                        if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_8_DATA_SIZE_8) {
+                            nameId = entry->name_id_8();
+                            bodySize = entry->len_data_8();
+                            headerSize += sizeof(UINT8) + sizeof(UINT8);
+                        }
+                        else if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_8) {
+                            nameId = entry->name_id_16();
+                            bodySize = entry->len_data_8();
+                            headerSize += sizeof(UINT16) + sizeof(UINT8);
+                        }
+                        else if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_16) {
+                            nameId = entry->name_id_16();
+                            bodySize = entry->len_data_16();
+                            headerSize += sizeof(UINT16) + sizeof(UINT16);
+                        }
+                        
+                        entrySize = headerSize + bodySize;
+                        header = dvar.mid(entryOffset, headerSize);
+                        body = dvar.mid(entryOffset + headerSize, bodySize);
+                       
+                        name = usprintf("%X:%X", entry->namespace_id(), nameId);
+                        info = usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nState: %02Xh\nFlags: %02Xh\nType: %02Xh\nNamespaceId: %Xh\nNameId: %Xh\n",
+                                        entrySize, entrySize,
+                                        (UINT32)header.size(), (UINT32)header.size(),
+                                        (UINT32)body.size(), (UINT32)body.size(),
+                                        entry->state(),
+                                        entry->flags(),
+                                        entry->type(),
+                                        entry->namespace_id(),
+                                        nameId);
+                    }
+
+                    // Mark NameId entries that are not stored as Invalid
+                    if (entry->flags() != DVAR_ENTRY_FLAG_NAME_ID + DVAR_ENTRY_FLAG_NAMESPACE_GUID &&
+                        (entry->state() == DVAR_ENTRY_STATE_STORING ||
+                             entry->state() == DVAR_ENTRY_STATE_DELETING ||
+                             entry->state() == DVAR_ENTRY_STATE_DELETED)) {
+                        subtype = Subtypes::InvalidDvarEntry;
+                        name = UString("Invalid");
+                        text.clear();
+                    }
+                    
+                    // Add tree item
+                    model->addItem(entryOffset, Types::DellDvarEntry, subtype, name, text, info, header, body, UByteArray(), Fixed, headerIndex);
+                    
+                    entryOffset += entrySize;
+                }
+            }
+            catch (...) {
+                // Parsing failed, need to add the candidate as Padding
+                UByteArray padding = data.mid(itemOffset, itemSize);
+                
+                // Get info
+                name = UString("Padding");
+                info = usprintf("Full size: %Xh (%u)", (UINT32)padding.size(), (UINT32)padding.size());
+                
+                // Add tree item
+                model->addItem(headerSize + itemOffset, Types::Padding, getPaddingType(padding), name, UString(), info, UByteArray(), padding, UByteArray(), Fixed, index);
+            }
+        }
+#endif
         else {
             return U_UNKNOWN_ITEM_TYPE;
         }
@@ -1079,7 +1281,7 @@ USTATUS FfsParser::parseRawArea(const UModelIndex & index)
         (void)prevItemType;
     }
     
-    // Padding at the end of RAW area
+    // Padding at the end of raw area
     itemOffset = prevItemOffset + prevItemSize;
     if ((UINT32)data.size() > itemOffset) {
         UByteArray padding = data.mid(itemOffset);
@@ -1110,6 +1312,9 @@ USTATUS FfsParser::parseRawArea(const UModelIndex & index)
                 // Parsing already done
                 break;
             case Types::InsydeFlashDeviceMapStore:
+                // Parsing already done
+                break;
+            case Types::DellDvarStore:
                 // Parsing already done
                 break;
             case Types::Padding:
@@ -1546,6 +1751,25 @@ continue_searching: {}
             nextItemOffset = offset;
             break;
         }
+#ifdef U_ENABLE_NVRAM_PARSING_SUPPORT
+        else if (readUnaligned(currentPos) == DVAR_STORE_SIGNATURE) {
+            // Check data size
+            if (restSize < sizeof(DVAR_STORE_HEADER))
+                continue;
+            
+            const DVAR_STORE_HEADER *dvarHeader = (const DVAR_STORE_HEADER *)currentPos;
+            UINT32 storeSize = 0xFFFFFFFF - dvarHeader->StoreSizeC;
+            if (restSize < storeSize)
+                continue;
+            
+            // All checks passed, FDM found
+            nextItemType = Types::DellDvarStore;
+            nextItemSize = storeSize;
+            nextItemAlternativeSize = storeSize;
+            nextItemOffset = offset;
+            break;
+        }
+#endif
     }
     
     // No more stores found
@@ -1567,9 +1791,9 @@ USTATUS FfsParser::parseVolumeNonUefiData(const UByteArray & data, const UINT32 
     
     // Add padding tree item
     UModelIndex paddingIndex = model->addItem(localOffset, Types::Padding, Subtypes::DataPadding, UString("Non-UEFI data"), UString(), info, UByteArray(), data, UByteArray(), Fixed, index);
-    msg(usprintf("%s: non-UEFI data found in volume's free space", __FUNCTION__), paddingIndex);
+    msg(usprintf("%s: non-UEFI data found in volume free space", __FUNCTION__), paddingIndex);
     
-    // Parse contents as RAW area
+    // Parse contents as raw area
     return parseRawArea(paddingIndex);
 }
 

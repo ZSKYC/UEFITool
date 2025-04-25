@@ -52,6 +52,7 @@ HEADERS += uefitool.h \
  ../common/digest/sm3.h \
  ../common/generated/ami_nvar.h \
  ../common/generated/apple_sysf.h \
+ ../common/generated/dell_dvar.h \
  ../common/generated/edk2_vss.h \
  ../common/generated/edk2_vss2.h \
  ../common/generated/edk2_ftw.h \
@@ -129,6 +130,7 @@ SOURCES += uefitool_main.cpp \
  ../common/digest/sm3.c \
  ../common/generated/ami_nvar.cpp \
  ../common/generated/apple_sysf.cpp \
+ ../common/generated/dell_dvar.cpp \
  ../common/generated/edk2_vss.cpp \
  ../common/generated/edk2_vss2.cpp \
  ../common/generated/edk2_ftw.cpp \

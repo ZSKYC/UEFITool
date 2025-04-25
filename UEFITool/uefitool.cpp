@@ -249,6 +249,7 @@ void UEFITool::populateUi(const QModelIndex &current)
                                      || type == Types::EvsaEntry
                                      || type == Types::PhoenixFlashMapEntry
                                      || type == Types::InsydeFlashDeviceMapEntry
+                                     || type == Types::DellDvarEntry
                                      || type == Types::IfwiHeader
                                      || type == Types::IfwiPartition
                                      || type == Types::FptPartition
@@ -269,6 +270,7 @@ void UEFITool::populateUi(const QModelIndex &current)
                                      || type == Types::FtwStore
                                      || type == Types::PhoenixFlashMapStore
                                      || type == Types::InsydeFlashDeviceMapStore
+                                     || type == Types::DellDvarStore
                                      || type == Types::NvarGuidStore
                                      || type == Types::CmdbStore
                                      || type == Types::FptStore
@@ -914,6 +916,7 @@ void UEFITool::contextMenuEvent(QContextMenuEvent* event)
         case Types::FtwStore:
         case Types::PhoenixFlashMapStore:
         case Types::InsydeFlashDeviceMapStore:
+        case Types::DellDvarStore:
         case Types::NvarGuidStore:
         case Types::CmdbStore:
         case Types::FptStore:

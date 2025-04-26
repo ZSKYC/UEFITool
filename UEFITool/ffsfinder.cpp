@@ -91,7 +91,7 @@ USTATUS FfsFinder::findHexPattern(const UModelIndex & index, const UByteArray & 
                 msg(UString("Hex pattern \"") + UString(hexPattern)
                     + UString("\" found as \"") + hexBody.mid(offset, hexPattern.length()).toUpper()
                     + UString("\" in ") + name
-                    + usprintf(" at %s-offset %02Xh", mode == SEARCH_MODE_BODY ? "body" : "header", offset / 2),
+                    + usprintf(" at %s-offset 0x%02X", mode == SEARCH_MODE_BODY ? "body" : "header", offset / 2),
                     index);
                 ret = U_SUCCESS;
             }
@@ -193,7 +193,7 @@ USTATUS FfsFinder::findGuidPattern(const UModelIndex & index, const UByteArray &
             msg(UString("GUID pattern \"") + UString(guidPattern)
                 + UString("\" found as \"") + hexBody.mid(offset, hexPattern.length()).toUpper()
                 + UString("\" in ") + name
-                + usprintf(" at %s-offset %02Xh", mode == SEARCH_MODE_BODY ? "body" : "header", offset / 2),
+                + usprintf(" at %s-offset 0x%02X", mode == SEARCH_MODE_BODY ? "body" : "header", offset / 2),
                 index);
             ret = U_SUCCESS;
         }
@@ -267,7 +267,7 @@ USTATUS FfsFinder::findTextPattern(const UModelIndex & index, const UString & pa
 
         msg((unicode ? UString("Unicode") : UString("ASCII")) + UString(" text \"") + UString(pattern)
             + UString("\" found in ") + name
-            + usprintf(" at %s-offset %02Xh", mode == SEARCH_MODE_BODY ? "body" : "header", offset),
+            + usprintf(" at %s-offset 0x%02X", mode == SEARCH_MODE_BODY ? "body" : "header", offset),
             index);
         ret = U_SUCCESS;
     }

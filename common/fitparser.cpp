@@ -79,7 +79,7 @@ USTATUS FitParser::parseFit(const UModelIndex & index)
         tempFitHeader->Checksum = 0;
         UINT8 calculated = calculateChecksum8((const UINT8*)tempFitHeader, fitSize);
         if (calculated != fitHeader->Checksum) {
-            msg(usprintf("%s: invalid FIT table checksum %02Xh, should be %02Xh", __FUNCTION__, fitHeader->Checksum, calculated), fitIndex);
+            msg(usprintf("%s: invalid FIT table checksum 0x%02X, should be 0x%02X", __FUNCTION__, fitHeader->Checksum, calculated), fitIndex);
         }
     }
     
@@ -92,9 +92,9 @@ USTATUS FitParser::parseFit(const UModelIndex & index)
     // Add FIT header
     std::vector<UString> currentStrings;
     currentStrings.push_back(UString("_FIT_            "));
-    currentStrings.push_back(usprintf("%08Xh", fitSize));
-    currentStrings.push_back(usprintf("%04Xh", fitHeader->Version));
-    currentStrings.push_back(usprintf("%02Xh", fitHeader->Checksum));
+    currentStrings.push_back(usprintf("0x%08X", fitSize));
+    currentStrings.push_back(usprintf("0x%04X", fitHeader->Version));
+    currentStrings.push_back(usprintf("0x%02X", fitHeader->Checksum));
     currentStrings.push_back(fitEntryTypeToUString(fitHeader->Type));
     currentStrings.push_back(UString()); // Empty info for FIT header
     fitTable.push_back(std::pair<std::vector<UString>, UModelIndex>(currentStrings, fitIndex));
@@ -120,7 +120,7 @@ USTATUS FitParser::parseFit(const UModelIndex & index)
         if ((currentEntry->Type == INTEL_FIT_TYPE_TXT_POLICY || currentEntry->Type == INTEL_FIT_TYPE_TPM_POLICY)
             && currentEntry->Version == 0) {
             const INTEL_FIT_INDEX_IO_ADDRESS* policy = (const INTEL_FIT_INDEX_IO_ADDRESS*)currentEntry;
-            info += usprintf("Index: %04Xh, BitPosition: %02Xh, AccessWidth: %02Xh, DataRegAddr: %04Xh, IndexRegAddr: %04Xh",
+            info += usprintf("Index: 0x%04X, BitPosition: 0x%02X, AccessWidth: 0x%02X, DataRegAddr: 0x%04X, IndexRegAddr: 0x%04X",
                              policy->Index,
                              policy->BitPosition,
                              policy->AccessWidthInBytes,
@@ -170,10 +170,10 @@ USTATUS FitParser::parseFit(const UModelIndex & index)
         }
         
         // Add entry to fitTable
-        currentStrings.push_back(usprintf("%016" PRIX64 "h", currentEntry->Address));
-        currentStrings.push_back(usprintf("%08Xh", currentEntrySize));
-        currentStrings.push_back(usprintf("%04Xh", currentEntry->Version));
-        currentStrings.push_back(usprintf("%02Xh", currentEntry->Checksum));
+        currentStrings.push_back(usprintf("0x%016" PRIX64, currentEntry->Address));
+        currentStrings.push_back(usprintf("0x%08X", currentEntrySize));
+        currentStrings.push_back(usprintf("0x%04X", currentEntry->Version));
+        currentStrings.push_back(usprintf("0x%02X", currentEntry->Checksum));
         currentStrings.push_back(fitEntryTypeToUString(currentEntry->Type));
         currentStrings.push_back(info);
         fitTable.push_back(std::pair<std::vector<UString>, UModelIndex>(currentStrings, itemIndex));
@@ -238,7 +238,7 @@ void FitParser::findFitRecursive(const UModelIndex & index, UModelIndex & found,
                 // Real FIT found
                 found = index;
                 fitOffset = offset;
-                msg(usprintf("%s: real FIT table found at physical address %08Xh", __FUNCTION__, fitAddress), found);
+                msg(usprintf("%s: real FIT table found at physical address 0x%08X", __FUNCTION__, fitAddress), found);
                 break;
             }
         }
@@ -265,7 +265,7 @@ USTATUS FitParser::parseFitEntryMicrocode(const UByteArray & microcode, const UI
     }
     
     // Valid microcode found
-    info = usprintf("CpuSignature: %08Xh, Revision: %08Xh, Date: %02X.%02X.%04X",
+    info = usprintf("CpuSignature: 0x%08X, Revision: 0x%08X, Date: %02X.%02X.%04X",
                     ucodeHeader->ProcessorSignature,
                     ucodeHeader->UpdateRevision,
                     ucodeHeader->DateDay,
@@ -290,11 +290,11 @@ USTATUS FitParser::parseFitEntryAcm(const UByteArray & acm, const UINT32 localOf
         // Check header version to be of a known value
         if (header->header_version() != intel_acm_t::KNOWN_HEADER_VERSION_V0_0
             && header->header_version() != intel_acm_t::KNOWN_HEADER_VERSION_V3_0) {
-            msg(usprintf("%s: Intel ACM with unknown header version %08Xh found", __FUNCTION__, header->header_version()), parent);
+            msg(usprintf("%s: Intel ACM with unknown header version 0x%08X found", __FUNCTION__, header->header_version()), parent);
         }
         
         // Valid ACM found
-        info = usprintf("LocalOffset: %08Xh, EntryPoint: %08Xh, ACM SVN: %04Xh, Date: %02X.%02X.%04X",
+        info = usprintf("LocalOffset: 0x%08X, EntryPoint: 0x%08X, ACM SVN: 0x%04X, Date: %02X.%02X.%04X",
                         localOffset,
                         header->entry_point(),
                         header->acm_svn(),
@@ -314,30 +314,30 @@ USTATUS FitParser::parseFitEntryAcm(const UByteArray & acm, const UINT32 localOf
             acmInfo = "BootGuard ACM ";
         }
         else {
-            acmInfo = usprintf("Unknown ACM (%04Xh)", header->module_subtype());
-            msg(usprintf("%s: Intel ACM with unknown subtype %04Xh found", __FUNCTION__, header->module_subtype()), parent);
+            acmInfo = usprintf("Unknown ACM (0x%04X)", header->module_subtype());
+            msg(usprintf("%s: Intel ACM with unknown subtype 0x%04X found", __FUNCTION__, header->module_subtype()), parent);
         }
         
-        acmInfo += usprintf("found at base %Xh\n"
-                            "ModuleType: %04Xh\n"
-                            "ModuleSubtype: %04Xh\n"
-                            "HeaderSize: %08Xh\n"
-                            "HeaderVersion: %08Xh\n"
-                            "ChipsetId: %04Xh\n"
-                            "Flags: %04Xh\n"
-                            "ModuleVendor: %04Xh\n"
+        acmInfo += usprintf("found at base 0x%X\n"
+                            "ModuleType: 0x%04X\n"
+                            "ModuleSubtype: 0x%04X\n"
+                            "HeaderSize: 0x%08X\n"
+                            "HeaderVersion: 0x%08X\n"
+                            "ChipsetId: 0x%04X\n"
+                            "Flags: 0x%04X\n"
+                            "ModuleVendor: 0x%04X\n"
                             "Date: %02X.%02X.%04X\n"
-                            "ModuleSize: %08Xh\n"
-                            "AcmSvn: %04Xh\n"
-                            "SeSvn: %04Xh\n"
-                            "CodeControlFlags: %08Xh\n"
-                            "ErrorEntryPoint: %08Xh\n"
-                            "GdtMax: %08Xh\n"
-                            "GdtBase: %08Xh\n"
-                            "SegmentSel: %08Xh\n"
-                            "EntryPoint: %08Xh\n"
-                            "KeySize: %08Xh\n"
-                            "ScratchSpaceSize: %08Xh\n",
+                            "ModuleSize: 0x%08X\n"
+                            "AcmSvn: 0x%04X\n"
+                            "SeSvn: 0x%04X\n"
+                            "CodeControlFlags: 0x%08X\n"
+                            "ErrorEntryPoint: 0x%08X\n"
+                            "GdtMax: 0x%08X\n"
+                            "GdtBase: 0x%08X\n"
+                            "SegmentSel: 0x%08X\n"
+                            "EntryPoint: 0x%08X\n"
+                            "KeySize: 0x%08X\n"
+                            "ScratchSpaceSize: 0x%08X\n",
                             model->base(parent) + localOffset,
                             header->module_type(),
                             header->module_subtype(),
@@ -361,10 +361,10 @@ USTATUS FitParser::parseFitEntryAcm(const UByteArray & acm, const UINT32 localOf
         
         // Add RsaPublicKey
         if (header->_is_null_rsa_exponent() == false) {
-            acmInfo += usprintf("ACM RSA Public Key Exponent: %Xh\n", header->rsa_exponent());
+            acmInfo += usprintf("ACM RSA Public Key Exponent: 0x%X\n", header->rsa_exponent());
         }
         else {
-            acmInfo += usprintf("ACM RSA Public Key Exponent: %Xh\n", INTEL_ACM_HARDCODED_RSA_EXPONENT);
+            acmInfo += usprintf("ACM RSA Public Key Exponent: 0x%X\n", INTEL_ACM_HARDCODED_RSA_EXPONENT);
         }
         acmInfo += usprintf("ACM RSA Public Key:");
         for (UINT32 i = 0; i < header->rsa_public_key().size(); i++) {
@@ -403,7 +403,7 @@ USTATUS FitParser::parseFitEntryBootGuardKeyManifest(const UByteArray & keyManif
         intel_keym_v1_t parsed(&ks);
         
         // Valid KM found
-        info = usprintf("LocalOffset: %08Xh, Version: %02Xh, KM Version: %02Xh, KM SVN: %02Xh",
+        info = usprintf("LocalOffset: 0x%08X, Version: 0x%02X, KM Version: 0x%02X, KM SVN: 0x%02X",
                         localOffset,
                         parsed.version(),
                         parsed.km_version(),
@@ -411,12 +411,12 @@ USTATUS FitParser::parseFitEntryBootGuardKeyManifest(const UByteArray & keyManif
         
         // Populate KM info
         UString kmInfo
-        = usprintf("Intel BootGuard Key manifest found at base %Xh\n"
+        = usprintf("Intel BootGuard Key manifest found at base 0x%X\n"
                    "Tag: '__KEYM__'\n"
-                   "Version: %02Xh\n"
-                   "KmVersion: %02Xh\n"
-                   "KmSvn: %02Xh\n"
-                   "KmId: %02Xh\n",
+                   "Version: 0x%02X\n"
+                   "KmVersion: 0x%02X\n"
+                   "KmSvn: 0x%02X\n"
+                   "KmId: 0x%02X\n",
                    model->base(parent) + localOffset,
                    parsed.version(),
                    parsed.km_version(),
@@ -433,15 +433,15 @@ USTATUS FitParser::parseFitEntryBootGuardKeyManifest(const UByteArray & keyManif
         // Add Key Signature
         const intel_keym_v1_t::key_signature_t* key_signature = parsed.key_signature();
         kmInfo += usprintf("Key Manifest Key Signature:\n"
-                           "Version: %02Xh\n"
-                           "KeyId: %04Xh\n"
-                           "SigScheme: %04Xh\n",
+                           "Version: 0x%02X\n"
+                           "KeyId: 0x%04X\n"
+                           "SigScheme: 0x%04X\n",
                            key_signature->version(),
                            key_signature->key_id(),
                            key_signature->sig_scheme());
                            
         // Add PubKey
-        kmInfo += usprintf("Key Manifest Public Key Exponent: %Xh\n", key_signature->public_key()->exponent());
+        kmInfo += usprintf("Key Manifest Public Key Exponent: 0x%X\n", key_signature->public_key()->exponent());
         kmInfo += usprintf("Key Manifest Public Key:");
         for (UINT16 i = 0; i < (UINT16)key_signature->public_key()->modulus().length(); i++) {
             if (i % 32 == 0) kmInfo += UString("\n");
@@ -507,7 +507,7 @@ USTATUS FitParser::parseFitEntryBootGuardKeyManifest(const UByteArray & keyManif
         intel_keym_v2_t::header_t* header = parsed.header();
         
         // Valid KM found
-        info = usprintf("LocalOffset: %08Xh, Version: %02Xh, KM Version: %02Xh, KM SVN: %02Xh",
+        info = usprintf("LocalOffset: 0x%08X, Version: 0x%02X, KM Version: 0x%02X, KM SVN: 0x%02X",
                         localOffset,
                         header->version(),
                         parsed.km_version(),
@@ -515,15 +515,15 @@ USTATUS FitParser::parseFitEntryBootGuardKeyManifest(const UByteArray & keyManif
         
         // Populate KM info
         UString kmInfo
-        = usprintf("Intel BootGuard Key manifest found at base %Xh\n"
+        = usprintf("Intel BootGuard Key manifest found at base 0x%X\n"
                    "Tag: '__KEYM__'\n"
-                   "Version: %02Xh\n"
-                   "KmVersion: %02Xh\n"
-                   "KmSvn: %02Xh\n"
-                   "KmId: %02Xh\n"
-                   "KeySignatureOffset: %04Xh\n"
-                   "FPFHashAlgorithmId: %04Xh\n"
-                   "HashCount: %04Xh\n",
+                   "Version: 0x%02X\n"
+                   "KmVersion: 0x%02X\n"
+                   "KmSvn: 0x%02X\n"
+                   "KmId: 0x%02X\n"
+                   "KeySignatureOffset: 0x%04X\n"
+                   "FPFHashAlgorithmId: 0x%04X\n"
+                   "HashCount: 0x%04X\n",
                    model->base(parent) + localOffset,
                    header->version(),
                    parsed.km_version(),
@@ -544,7 +544,7 @@ USTATUS FitParser::parseFitEntryBootGuardKeyManifest(const UByteArray & keyManif
                 const auto & current_km_hash = parsed.km_hashes()->at(i);
                 
                 // Add KM hash
-                kmInfo += usprintf("UsageFlags: %016" PRIX64 "h, ", current_km_hash->usage_flags()) + hashTypeToUString(current_km_hash->hash_algorithm_id()) + ": ";
+                kmInfo += usprintf("UsageFlags: 0x%016" PRIX64 ", ", current_km_hash->usage_flags()) + hashTypeToUString(current_km_hash->hash_algorithm_id()) + ": ";
                 for (UINT16 j = 0; j < current_km_hash->len_hash(); j++) {
                     kmInfo += usprintf("%02X", (UINT8)current_km_hash->hash().data()[j]);
                 }
@@ -559,15 +559,15 @@ USTATUS FitParser::parseFitEntryBootGuardKeyManifest(const UByteArray & keyManif
         // Add Key Signature
         const intel_keym_v2_t::key_signature_t* key_signature = parsed.key_signature();
         kmInfo += usprintf("Key Manifest Key Signature:\n"
-                           "Version: %02Xh\n"
-                           "KeyId: %04Xh\n"
-                           "SigScheme: %04Xh\n",
+                           "Version: 0x%02X\n"
+                           "KeyId: 0x%04X\n"
+                           "SigScheme: 0x%04X\n",
                            key_signature->version(),
                            key_signature->key_id(),
                            key_signature->sig_scheme());
                            
         // Add PubKey
-        kmInfo += usprintf("Key Manifest Public Key Exponent: %Xh\n", key_signature->public_key()->exponent());
+        kmInfo += usprintf("Key Manifest Public Key Exponent: 0x%X\n", key_signature->public_key()->exponent());
         kmInfo += usprintf("Key Manifest Public Key:");
         for (UINT16 i = 0; i < (UINT16)key_signature->public_key()->modulus().length(); i++) {
             if (i % 32 == 0) kmInfo += UString("\n");
@@ -638,20 +638,20 @@ USTATUS FitParser::parseFitEntryBootGuardBootPolicy(const UByteArray & bootPolic
         intel_acbp_v1_t parsed(&ks);
         
         // Valid BPM found
-        info = usprintf("LocalOffset: %08Xh, Version: %02Xh, BP SVN: %02Xh, ACM SVN: %02Xh",
+        info = usprintf("LocalOffset: 0x%08X, Version: 0x%02X, BP SVN: 0x%02X, ACM SVN: 0x%02X",
                         localOffset,
                         parsed.version(),
                         parsed.bp_svn(),
                         parsed.acm_svn());
         
         UString bpInfo
-        = usprintf("Intel BootGuard Boot Policy Manifest found at base %Xh\n"
+        = usprintf("Intel BootGuard Boot Policy Manifest found at base 0x%X\n"
                    "StructureId: '__ACBP__'\n"
-                   "Version: %02Xh\n"
-                   "BPMRevision: %02Xh\n"
-                   "BPSVN: %02Xh\n"
-                   "ACMSVN: %02Xh\n"
-                   "NEMDataSize: %04Xh\n",
+                   "Version: 0x%02X\n"
+                   "BPMRevision: 0x%02X\n"
+                   "BPSVN: 0x%02X\n"
+                   "ACMSVN: 0x%02X\n"
+                   "NEMDataSize: 0x%04X\n",
                    model->base(parent) + localOffset,
                    parsed.version(),
                    parsed.bpm_revision(),
@@ -667,7 +667,7 @@ USTATUS FitParser::parseFitEntryBootGuardBootPolicy(const UByteArray & bootPolic
             const char* structure_id_bytes = (const char*)&structure_id;
             
             bpInfo += usprintf("StructureId: '%c%c%c%c%c%c%c%c'\n"
-                               "Version: %02Xh\n",
+                               "Version: 0x%02X\n",
                                structure_id_bytes[0],
                                structure_id_bytes[1],
                                structure_id_bytes[2],
@@ -683,15 +683,15 @@ USTATUS FitParser::parseFitEntryBootGuardBootPolicy(const UByteArray & bootPolic
                 const intel_acbp_v1_t::ibbs_body_t* ibbs_body = element->ibbs_body();
                 
                 // Valid IBBS element found
-                bpInfo += usprintf("Flags: %08Xh\n"
-                                   "MchBar: %016" PRIX64 "h\n"
-                                   "VtdBar: %016" PRIX64 "h\n"
-                                   "DmaProtectionBase0: %08Xh\n"
-                                   "DmaProtectionLimit0: %08Xh\n"
-                                   "DmaProtectionBase1: %016" PRIX64 "h\n"
-                                   "DmaProtectionLimit1: %016" PRIX64 "h\n"
-                                   "IbbEntryPoint: %08Xh\n"
-                                   "IbbSegmentsCount: %02Xh\n",
+                bpInfo += usprintf("Flags: 0x%08X\n"
+                                   "MchBar: 0x%016" PRIX64 "\n"
+                                   "VtdBar: 0x%016" PRIX64 "\n"
+                                   "DmaProtectionBase0: 0x%08X\n"
+                                   "DmaProtectionLimit0: 0x%08X\n"
+                                   "DmaProtectionBase1: 0x%016" PRIX64 "\n"
+                                   "DmaProtectionLimit1: 0x%016" PRIX64 "\n"
+                                   "IbbEntryPoint: 0x%08X\n"
+                                   "IbbSegmentsCount: 0x%02X\n",
                                    ibbs_body->flags(),
                                    ibbs_body->mch_bar(),
                                    ibbs_body->vtd_bar(),
@@ -743,7 +743,7 @@ USTATUS FitParser::parseFitEntryBootGuardBootPolicy(const UByteArray & bootPolic
                     for (UINT8 i = 0; i < ibbs_body->num_ibb_segments(); i++) {
                         const auto & current_segment = ibbs_body->ibb_segments()->at(i);
                         
-                        bpInfo += usprintf("Flags: %04Xh, Address: %08Xh, Size: %08Xh\n",
+                        bpInfo += usprintf("Flags: 0x%04X, Address: 0x%08X, Size: 0x%08X\n",
                                            current_segment->flags(),
                                            current_segment->base(),
                                            current_segment->size());
@@ -765,9 +765,9 @@ USTATUS FitParser::parseFitEntryBootGuardBootPolicy(const UByteArray & bootPolic
                 intel_acbp_v1_t::pmda_body_t* pmda_body = element->pmda_body();
                 
                 // Valid Microsoft PMDA element found
-                bpInfo += usprintf("TotalSize: %04Xh\n"
-                                   "Version: %08Xh\n"
-                                   "NumEntries: %08Xh\n",
+                bpInfo += usprintf("TotalSize: 0x%04X\n"
+                                   "Version: 0x%08X\n"
+                                   "NumEntries: 0x%08X\n",
                                    pmda_body->total_size(),
                                    pmda_body->version(),
                                    pmda_body->num_entries());
@@ -782,7 +782,7 @@ USTATUS FitParser::parseFitEntryBootGuardBootPolicy(const UByteArray & bootPolic
                             const auto & current_element = pmda_body->entries_v1()->at(i);
                             
                             // Add element
-                            bpInfo += usprintf("Address: %08Xh, Size: %08Xh\n",
+                            bpInfo += usprintf("Address: 0x%08X, Size: 0x%08X\n",
                                                current_element->base(),
                                                current_element->size());
                             
@@ -811,7 +811,7 @@ USTATUS FitParser::parseFitEntryBootGuardBootPolicy(const UByteArray & bootPolic
                             const auto & current_element = pmda_body->entries_v2()->at(i);
                             
                             // Add element
-                            bpInfo += usprintf("Address: %08Xh, Size: %08Xh\n",
+                            bpInfo += usprintf("Address: 0x%08X, Size: 0x%08X\n",
                                                current_element->base(),
                                                current_element->size());
                             
@@ -840,15 +840,15 @@ USTATUS FitParser::parseFitEntryBootGuardBootPolicy(const UByteArray & bootPolic
             else if (element->_is_null_pmsg_body() == false) {
                 const intel_acbp_v1_t::pmsg_body_t* key_signature = element->pmsg_body();
                 bpInfo += usprintf("Boot Policy Key Signature:\n"
-                                   "Version: %02Xh\n"
-                                   "KeyId: %04Xh\n"
-                                   "SigScheme: %04Xh\n",
+                                   "Version: 0x%02X\n"
+                                   "KeyId: 0x%04X\n"
+                                   "SigScheme: 0x%04X\n",
                                    key_signature->version(),
                                    key_signature->key_id(),
                                    key_signature->sig_scheme());
                                    
                 // Add PubKey
-                bpInfo += usprintf("Boot Policy Public Key Exponent: %Xh\n", key_signature->public_key()->exponent());
+                bpInfo += usprintf("Boot Policy Public Key Exponent: 0x%X\n", key_signature->public_key()->exponent());
                 bpInfo += usprintf("Boot Policy Public Key:");
                 for (UINT16 i = 0; i < (UINT16)key_signature->public_key()->modulus().length(); i++) {
                     if (i % 32 == 0) bpInfo += UString("\n");
@@ -900,7 +900,7 @@ USTATUS FitParser::parseFitEntryBootGuardBootPolicy(const UByteArray & bootPolic
         kaitai::kstream ks(&is);
         intel_acbp_v2_t parsed(&ks); // This already verified the version to be >= 0x20
         // Valid BPM found
-        info = usprintf("LocalOffset: %08Xh, Version: %02Xh, BP SVN: %02Xh, ACM SVN: %02Xh",
+        info = usprintf("LocalOffset: 0x%08X, Version: 0x%02X, BP SVN: 0x%02X, ACM SVN: 0x%02X",
                         localOffset,
                         parsed.version(),
                         parsed.bp_svn(),
@@ -908,16 +908,16 @@ USTATUS FitParser::parseFitEntryBootGuardBootPolicy(const UByteArray & bootPolic
         
         // Add BP header and body info
         UString bpInfo
-        = usprintf("Intel BootGuard Boot Policy Manifest found at base %Xh\n"
+        = usprintf("Intel BootGuard Boot Policy Manifest found at base 0x%X\n"
                    "StructureId: '__ACBP__'\n"
-                   "Version: %02Xh\n"
-                   "HeaderSpecific: %02Xh\n"
-                   "TotalSize: %04Xh\n"
-                   "KeySignatureOffset: %04Xh\n"
-                   "BPMRevision: %02Xh\n"
-                   "BPSVN: %02Xh\n"
-                   "ACMSVN: %02Xh\n"
-                   "NEMDataSize: %04Xh\n",
+                   "Version: 0x%02X\n"
+                   "HeaderSpecific: 0x%02X\n"
+                   "TotalSize: 0x%04X\n"
+                   "KeySignatureOffset: 0x%04X\n"
+                   "BPMRevision: 0x%02X\n"
+                   "BPSVN: 0x%02X\n"
+                   "ACMSVN: 0x%02X\n"
+                   "NEMDataSize: 0x%04X\n",
                    model->base(parent) + localOffset,
                    parsed.version(),
                    parsed.header_specific(),
@@ -936,9 +936,9 @@ USTATUS FitParser::parseFitEntryBootGuardBootPolicy(const UByteArray & bootPolic
             const char* structure_id_bytes = (const char*)&structure_id;
             
             bpInfo += usprintf("StructureId: '%c%c%c%c%c%c%c%c'\n"
-                               "Version: %02Xh\n"
-                               "HeaderSpecific: %02Xh\n"
-                               "TotalSize: %04Xh\n",
+                               "Version: 0x%02X\n"
+                               "HeaderSpecific: 0x%02X\n"
+                               "TotalSize: 0x%04X\n",
                                structure_id_bytes[0],
                                structure_id_bytes[1],
                                structure_id_bytes[2],
@@ -956,19 +956,19 @@ USTATUS FitParser::parseFitEntryBootGuardBootPolicy(const UByteArray & bootPolic
                 const intel_acbp_v2_t::ibbs_body_t* ibbs_body = element->ibbs_body();
                 
                 // Valid IBBS element found
-                bpInfo += usprintf("SetNumber: %02Xh\n"
-                                   "PBETValue: %02Xh\n"
-                                   "Flags: %08Xh\n"
-                                   "MchBar: %016" PRIX64 "h\n"
-                                   "VtdBar: %016" PRIX64 "h\n"
-                                   "DmaProtectionBase0: %08Xh\n"
-                                   "DmaProtectionLimit0: %08Xh\n"
-                                   "DmaProtectionBase1: %016" PRIX64 "h\n"
-                                   "DmaProtectionLimit1: %016" PRIX64 "h\n"
-                                   "IbbEntryPoint: %08Xh\n"
-                                   "IbbDigestsSize: %02Xh\n"
-                                   "IbbDigestsCount: %02Xh\n"
-                                   "IbbSegmentsCount: %02Xh\n",
+                bpInfo += usprintf("SetNumber: 0x%02X\n"
+                                   "PBETValue: 0x%02X\n"
+                                   "Flags: 0x%08X\n"
+                                   "MchBar: 0x%016" PRIX64 "\n"
+                                   "VtdBar: 0x%016" PRIX64 "\n"
+                                   "DmaProtectionBase0: 0x%08X\n"
+                                   "DmaProtectionLimit0: 0x%08X\n"
+                                   "DmaProtectionBase1: 0x%016" PRIX64 "\n"
+                                   "DmaProtectionLimit1: 0x%016" PRIX64 "\n"
+                                   "IbbEntryPoint: 0x%08X\n"
+                                   "IbbDigestsSize: 0x%02X\n"
+                                   "IbbDigestsCount: 0x%02X\n"
+                                   "IbbSegmentsCount: 0x%02X\n",
                                    ibbs_body->set_number(),
                                    ibbs_body->pbet_value(),
                                    ibbs_body->flags(),
@@ -1058,7 +1058,7 @@ USTATUS FitParser::parseFitEntryBootGuardBootPolicy(const UByteArray & bootPolic
                     for (UINT8 i = 0; i < ibbs_body->num_ibb_segments(); i++) {
                         const auto & current_segment = ibbs_body->ibb_segments()->at(i);
                         
-                        bpInfo += usprintf("Flags: %04Xh, Address: %08Xh, Size: %08Xh\n",
+                        bpInfo += usprintf("Flags: 0x%04X, Address: 0x%08X, Size: 0x%08X\n",
                                            current_segment->flags(),
                                            current_segment->base(),
                                            current_segment->size());
@@ -1080,9 +1080,9 @@ USTATUS FitParser::parseFitEntryBootGuardBootPolicy(const UByteArray & bootPolic
                 const intel_acbp_v2_t::pmda_body_t* pmda_body = element->pmda_body();
                 
                 // Valid Microsoft PMDA element found
-                bpInfo += usprintf("TotalSize: %04Xh\n"
-                                   "Version: %08Xh\n"
-                                   "NumEntries: %08Xh\n",
+                bpInfo += usprintf("TotalSize: 0x%04X\n"
+                                   "Version: 0x%08X\n"
+                                   "NumEntries: 0x%08X\n",
                                    pmda_body->total_size(),
                                    pmda_body->version(),
                                    pmda_body->num_entries());
@@ -1099,7 +1099,7 @@ USTATUS FitParser::parseFitEntryBootGuardBootPolicy(const UByteArray & bootPolic
                         const char* entry_id_bytes = (const char*)&entry_id;
                         
                         // Add element
-                        bpInfo += usprintf("EntryId: '%c%c%c%c', Version: %04Xh, Address: %08Xh, Size: %08Xh\n",
+                        bpInfo += usprintf("EntryId: '%c%c%c%c', Version: 0x%04X, Address: 0x%08X, Size: 0x%08X\n",
                                            entry_id_bytes[0],
                                            entry_id_bytes[1],
                                            entry_id_bytes[2],
@@ -1134,15 +1134,15 @@ USTATUS FitParser::parseFitEntryBootGuardBootPolicy(const UByteArray & bootPolic
         // Add Key Signature
         const intel_acbp_v2_t::key_signature_t* key_signature = parsed.key_signature();
         bpInfo += usprintf("Boot Policy Key Signature:\n"
-                           "Version: %02Xh\n"
-                           "KeyId: %04Xh\n"
-                           "SigScheme: %04Xh\n",
+                           "Version: 0x%02X\n"
+                           "KeyId: 0x%04X\n"
+                           "SigScheme: 0x%04X\n",
                            key_signature->version(),
                            key_signature->key_id(),
                            key_signature->sig_scheme());
                            
         // Add PubKey
-        bpInfo += usprintf("Boot Policy Public Key Exponent: %Xh\n", key_signature->public_key()->exponent());
+        bpInfo += usprintf("Boot Policy Public Key Exponent: 0x%X\n", key_signature->public_key()->exponent());
         bpInfo += usprintf("Boot Policy Public Key:");
         for (UINT16 i = 0; i < (UINT16)key_signature->public_key()->modulus().length(); i++) {
             if (i % 32 == 0) bpInfo += UString("\n");

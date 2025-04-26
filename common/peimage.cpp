@@ -31,5 +31,5 @@ UString machineTypeToUString(UINT16 machineType)
         case EFI_IMAGE_FILE_MACHINE_RISCV64:     return UString("RISC-V 64-bit");
         case EFI_IMAGE_FILE_MACHINE_RISCV128:    return UString("RISC-V 128-bit");
     }
-    return usprintf("Unknown %04Xh", machineType);
+    return usprintf("Unknown 0x%04X", machineType);
 }

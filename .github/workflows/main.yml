@@ -35,7 +35,26 @@ jobs:
         run: cmake --build . --config Release
       - name: Create dist directory
         run: cmake -E make_directory ${{runner.workspace}}/UEFITool/dist
+      - name: Signed archive everything
+        if: github.repository_owner == 'LongSoft'
+        working-directory: ${{runner.workspace}}/build
+        env:
+          MAC_CERTIFICATE_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
+          MAC_ACCOUNT_NAME: ${{ secrets.MAC_ACCOUNT_NAME }}
+          MAC_ACCOUNT_PASSWORD: ${{ secrets.MAC_ACCOUNT_PASSWORD }}
+        shell: bash
+        run: |
+          UEFITOOL_VER=$(cat ../UEFITool/version.h | grep PROGRAM_VERSION | cut -d'"' -f2 | sed 's/NE alpha /A/') ; \
+          codesign -fs - UEFIExtract/UEFIExtract
+          codesign -fs - UEFIFind/UEFIFind
+          zip -qryj ../UEFITool/dist/UEFIExtract_NE_${UEFITOOL_VER}_universal_mac.zip ./UEFIExtract/UEFIExtract
+          zip -qryj ../UEFITool/dist/UEFIFind_NE_${UEFITOOL_VER}_universal_mac.zip ./UEFIFind/UEFIFind
+          brew install create-dmg || exit 1
+          curl -OL "https://github.com/acidanthera/ocbuild/raw/master/codesign/appsign.sh" || exit 1
+          chmod a+x appsign.sh || exit 1
+          "$(pwd)/appsign.sh" ./UEFITool/UEFITool.app ../UEFITool/dist/UEFITool_NE_${UEFITOOL_VER}_universal_mac.dmg
       - name: Archive everything
+        if: github.repository_owner != 'LongSoft'
         working-directory: ${{runner.workspace}}/build
         shell: bash
         run: |
@@ -51,13 +70,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macOS builds
-          path: dist/*.zip
+          path: dist/*
       - name: Upload to releases
         if: github.event_name == 'release'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/*.zip
+          file: dist/*
           tag: ${{ github.ref }}
           file_glob: true
 

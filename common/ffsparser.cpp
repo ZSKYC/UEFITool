@@ -1525,8 +1525,8 @@ USTATUS FfsParser::parseVolumeHeader(const UByteArray & volume, const UINT32 loc
     
     // Block size and blocks number
     const EFI_FV_BLOCK_MAP_ENTRY* entry = (const EFI_FV_BLOCK_MAP_ENTRY*)(volume.constData() + sizeof(EFI_FIRMWARE_VOLUME_HEADER));
-    UString infoNumBlocks = usprintf("NumBlocks: 0x%X (%u)", entry->NumBlocks, entry->NumBlocks);
-    UString infoLength = usprintf("Length: 0x%X (%u)", entry->Length, entry->Length);
+    UString infoNumBlocks = usprintf("NumBlocks: %Xh (%u)", entry->NumBlocks, entry->NumBlocks);
+    UString infoLength = usprintf("Length: %Xh (%u)", entry->Length, entry->Length);
     if (entry->NumBlocks == 0) {
         infoNumBlocks += UString(", invalid, can not be zero");
     }
@@ -1537,12 +1537,12 @@ USTATUS FfsParser::parseVolumeHeader(const UByteArray & volume, const UINT32 loc
         UINT32 volumeAltSize = entry->NumBlocks * entry->Length;
         if (volumeSize != volumeAltSize) {
             if (volumeAltSize % entry->Length == 0 && volumeSize % entry->Length == 0) {
-                infoNumBlocks += usprintf(", invalid, should be 0x%X", volumeSize / entry->Length);
+                infoNumBlocks += usprintf(", invalid, should be %Xh", volumeSize / entry->Length);
                 infoLength += ", valid";
             }
             else if (volumeAltSize % entry->NumBlocks == 0 && volumeSize % entry->NumBlocks == 0) {
                 infoNumBlocks += ", valid";
-                infoLength += usprintf(", invalid, should be 0x%X", volumeSize / entry->NumBlocks);
+                infoLength += usprintf(", invalid, should be %Xh", volumeSize / entry->NumBlocks);
             }
         }
         else {
@@ -1787,7 +1787,7 @@ continue_searching: {}
             
             // Check size candidate
             if (sizeCandidate == 0 || sizeCandidate > restSize) {
-                msg(usprintf("%s: invalid BpdtStore size (sizeCandidate = 0x%x, restSize = 0x%x)", __FUNCTION__, sizeCandidate, restSize), index);
+                msg(usprintf("%s: invalid BpdtStore size (sizeCandidate = %Xh, restSize = %Xh)", __FUNCTION__, sizeCandidate, restSize), index);
                 continue;
             }
             

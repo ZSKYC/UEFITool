@@ -703,10 +703,15 @@ USTATUS FfsParser::parseMeRegion(const UByteArray & me, const UINT32 localOffset
     bool versionFound = true;
     bool emptyRegion = false;
     // Check for empty region
-    if (me.size() == me.count('\xFF') || me.size() == me.count('\x00')) {
+    if (me.size() == me.count('\xFF')) {
         // Further parsing not needed
         emptyRegion = true;
-        info += ("\nState: empty");
+        info += ("\nState: empty (0xFF)");
+    }
+    else if (me.size() == me.count('\x00')) {
+        // Further parsing not needed
+        emptyRegion = true;
+        info += ("\nState: empty (0x00)");
     }
     else {
         // Search for new signature
@@ -724,12 +729,11 @@ USTATUS FfsParser::parseMeRegion(const UByteArray & me, const UINT32 localOffset
             }
         }
         
-        // Check sanity
-        if ((UINT32)me.size() < (UINT32)versionOffset + sizeof(ME_VERSION))
-            return U_INVALID_REGION;
-        
         // Add version information
         if (versionFound) {
+            if ((UINT32)me.size() < (UINT32)versionOffset + sizeof(ME_VERSION))
+                return U_INVALID_REGION;
+        
             const ME_VERSION* version = (const ME_VERSION*)(me.constData() + versionOffset);
             info += usprintf("\nVersion: %u.%u.%u.%u",
                              version->Major,
@@ -766,13 +770,28 @@ USTATUS FfsParser::parsePdrRegion(const UByteArray & pdr, const UINT32 localOffs
     UString name("PDR region");
     UString info = usprintf("Full size: 0x%X (%u)", (UINT32)pdr.size(), (UINT32)pdr.size());
     
+    // Check for empty region
+    bool emptyRegion = false;
+    if (pdr.size() == pdr.count('\xFF')) {
+        // Further parsing not needed
+        emptyRegion = true;
+        info += ("\nState: empty (0xFF)");
+    }
+    else if (pdr.size() == pdr.count('\x00')) {
+        // Further parsing not needed
+        emptyRegion = true;
+        info += ("\nState: empty (0x00)");
+    }
+    
     // Add tree item
     index = model->addItem(localOffset, Types::Region, Subtypes::PdrRegion, name, UString(), info, UByteArray(), pdr, UByteArray(), Fixed, parent);
     
-    // Parse PDR region as BIOS space
-    USTATUS result = parseRawArea(index);
-    if (result && result != U_VOLUMES_NOT_FOUND && result != U_INVALID_VOLUME && result != U_STORES_NOT_FOUND)
-        return result;
+    if (!emptyRegion) {
+        // Parse PDR region as BIOS space
+        USTATUS result = parseRawArea(index);
+        if (result && result != U_VOLUMES_NOT_FOUND && result != U_INVALID_VOLUME && result != U_STORES_NOT_FOUND)
+            return result;
+    }
     
     return U_SUCCESS;
 }
@@ -787,12 +806,17 @@ USTATUS FfsParser::parseDevExp1Region(const UByteArray & devExp1, const UINT32 l
     UString name("DevExp1 region");
     UString info = usprintf("Full size: 0x%X (%u)", (UINT32)devExp1.size(), (UINT32)devExp1.size());
     
-    bool emptyRegion = false;
     // Check for empty region
-    if (devExp1.size() == devExp1.count('\xFF') || devExp1.size() == devExp1.count('\x00')) {
+    bool emptyRegion = false;
+    if (devExp1.size() == devExp1.count('\xFF')) {
         // Further parsing not needed
         emptyRegion = true;
-        info += ("\nState: empty");
+        info += ("\nState: empty (0xFF)");
+    }
+    else if (devExp1.size() == devExp1.count('\x00')) {
+        // Further parsing not needed
+        emptyRegion = true;
+        info += ("\nState: empty (0x00)");
     }
     
     // Add tree item
@@ -813,6 +837,19 @@ USTATUS FfsParser::parseGenericRegion(const UINT8 subtype, const UByteArray & re
     // Get info
     UString name = itemSubtypeToUString(Types::Region, subtype) + UString(" region");
     UString info = usprintf("Full size: 0x%X (%u)", (UINT32)region.size(), (UINT32)region.size());
+    
+    // Check for empty region
+    bool emptyRegion = false;
+    if (region.size() == region.count('\xFF')) {
+        // Further parsing not needed
+        emptyRegion = true;
+        info += ("\nState: empty (0xFF)");
+    }
+    else if (region.size() == region.count('\x00')) {
+        // Further parsing not needed
+        emptyRegion = true;
+        info += ("\nState: empty (0x00)");
+    }
     
     // Add tree item
     index = model->addItem(localOffset, Types::Region, subtype, name, UString(), info, UByteArray(), region, UByteArray(), Fixed, parent);
@@ -1486,7 +1523,36 @@ USTATUS FfsParser::parseVolumeHeader(const UByteArray & volume, const UINT32 loc
                volumeHeader->Checksum) +
     (msgInvalidChecksum ? usprintf(", invalid, should be 0x%04X", calculated) : UString(", valid"));
     
-    // Extended header present
+    // Block size and blocks number
+    const EFI_FV_BLOCK_MAP_ENTRY* entry = (const EFI_FV_BLOCK_MAP_ENTRY*)(volume.constData() + sizeof(EFI_FIRMWARE_VOLUME_HEADER));
+    UString infoNumBlocks = usprintf("NumBlocks: 0x%X (%u)", entry->NumBlocks, entry->NumBlocks);
+    UString infoLength = usprintf("Length: 0x%X (%u)", entry->Length, entry->Length);
+    if (entry->NumBlocks == 0) {
+        infoNumBlocks += UString(", invalid, can not be zero");
+    }
+    if (entry->Length == 0)  {
+        infoLength += UString(", invalid, can not be zero");
+    }
+    if (entry->NumBlocks != 0 && entry->Length != 0) {
+        UINT32 volumeAltSize = entry->NumBlocks * entry->Length;
+        if (volumeSize != volumeAltSize) {
+            if (volumeAltSize % entry->Length == 0 && volumeSize % entry->Length == 0) {
+                infoNumBlocks += usprintf(", invalid, should be 0x%X", volumeSize / entry->Length);
+                infoLength += ", valid";
+            }
+            else if (volumeAltSize % entry->NumBlocks == 0 && volumeSize % entry->NumBlocks == 0) {
+                infoNumBlocks += ", valid";
+                infoLength += usprintf(", invalid, should be 0x%X", volumeSize / entry->NumBlocks);
+            }
+        }
+        else {
+            infoNumBlocks += ", valid";
+            infoLength += ", valid";
+        }
+    }
+    info += "\n" + infoNumBlocks + "\n" + infoLength;
+    
+    // Extended header
     if (volumeHeader->Revision > 1 && volumeHeader->ExtHeaderOffset) {
         if ((UINT32)volume.size() < volumeHeader->ExtHeaderOffset + sizeof(EFI_FIRMWARE_VOLUME_EXT_HEADER)) {
             return U_INVALID_VOLUME;

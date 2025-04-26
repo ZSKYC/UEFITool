@@ -541,8 +541,10 @@ USTATUS FfsParser::parseIntelImage(const UByteArray & intelImage, const UINT32 l
     else if (descriptorVersion == 2) {
         const FLASH_DESCRIPTOR_MASTER_SECTION_V2* masterSection = (const FLASH_DESCRIPTOR_MASTER_SECTION_V2*)calculateAddress8((UINT8*)descriptor, descriptorMap->MasterBase);
         info += UString("\nRegion access settings:");
-        info += usprintf("\nBIOS: %03X %03X ME: %03X %03X"
-                         "\nGbE:  %03X %03X EC: %03X %03X",
+        info += usprintf("\nBIOS: 0x%03X 0x%03X"
+                         "\nME:   0x%03X 0x%03X"
+                         "\nGbE:  0x%03X 0x%03X"
+                         "\nEC:   0x%03X 0x%03X",
                          masterSection->BiosRead,
                          masterSection->BiosWrite,
                          masterSection->MeRead,

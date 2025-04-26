@@ -126,11 +126,11 @@ USTATUS FfsBuilder::buildCapsule(const UModelIndex & index, UByteArray & capsule
             UINT32 newSize = (UINT32)capsule.size();
             UINT32 oldSize = (UINT32)model->body(index).size();
             if (newSize > oldSize) {
-                msg(usprintf("buildCapsule: new capsule size 0x%X (%u) is bigger than the original 0x%X (%u)", newSize, newSize, oldSize, oldSize), index);
+                msg(usprintf("buildCapsule: new capsule size %Xh (%u) is bigger than the original %Xh (%u)", newSize, newSize, oldSize, oldSize), index);
                 return U_INVALID_CAPSULE;
             }
             else if (newSize < oldSize) {
-                msg(usprintf("buildCapsule: new capsule size 0x%X (%u) is smaller than the original 0x%X (%u)", newSize, newSize, oldSize, oldSize), index);
+                msg(usprintf("buildCapsule: new capsule size %Xh (%u) is smaller than the original %Xh (%u)", newSize, newSize, oldSize, oldSize), index);
                 return U_INVALID_CAPSULE;
             }
         }
@@ -225,11 +225,11 @@ USTATUS FfsBuilder::buildIntelImage(const UModelIndex & index, UByteArray & inte
         UINT32 newSize = (UINT32)intelImage.size();
         UINT32 oldSize = (UINT32)model->body(index).size();
         if (newSize > oldSize) {
-            msg(usprintf("buildIntelImage: new image size 0x%X (%u) is bigger than the original 0x%X (%u)", newSize, newSize, oldSize, oldSize), index);
+            msg(usprintf("buildIntelImage: new image size %Xh (%u) is bigger than the original %Xh (%u)", newSize, newSize, oldSize, oldSize), index);
             return U_INVALID_IMAGE;
         }
         else if (newSize < oldSize) {
-            msg(usprintf("buildIntelImage: new image size 0x%X (%u) is smaller than the original 0x%X (%u)", newSize, newSize, oldSize, oldSize), index);
+            msg(usprintf("buildIntelImage: new image size %Xh (%u) is smaller than the original %Xh (%u)", newSize, newSize, oldSize, oldSize), index);
             return U_INVALID_IMAGE;
         }
         
@@ -296,11 +296,11 @@ USTATUS FfsBuilder::buildRawArea(const UModelIndex & index, UByteArray & rawArea
             UINT32 newSize = (UINT32)rawArea.size();
             UINT32 oldSize = (UINT32)model->body(index).size();
             if (newSize > oldSize) {
-                msg(usprintf("buildRawArea: new area size 0x%X (%u) is bigger than the original 0x%X (%u)", newSize, newSize, oldSize, oldSize), index);
+                msg(usprintf("buildRawArea: new area size %Xh (%u) is bigger than the original %Xh (%u)", newSize, newSize, oldSize, oldSize), index);
                 return U_INVALID_RAW_AREA;
             }
             else if (newSize < oldSize) {
-                msg(usprintf("buildRawArea: new area size 0x%X (%u) is smaller than the original 0x%X (%u)", newSize, newSize, oldSize, oldSize), index);
+                msg(usprintf("buildRawArea: new area size %Xh (%u) is smaller than the original %Xh (%u)", newSize, newSize, oldSize, oldSize), index);
                 return U_INVALID_RAW_AREA;
             }
         }

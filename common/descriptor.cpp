@@ -249,5 +249,5 @@ UString jedecIdToUString(UINT8 vendorId, UINT8 deviceId0, UINT8 deviceId1)
         case 0x9D7019: return UString("ISSI Ix25WP256");
     }
 
-    return usprintf("Unknown 0x%08X", jedecId);
+    return usprintf("Unknown %08Xh", jedecId);
 }

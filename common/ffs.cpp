@@ -296,7 +296,7 @@ UString fileTypeToUString(const UINT8 type)
         case EFI_FV_FILETYPE_MM_CORE_STANDALONE:    return UString("MM standalone core");
         case EFI_FV_FILETYPE_PAD:                   return UString("Pad");
     };
-    return usprintf("Unknown 0x%02X", type);
+    return usprintf("Unknown %02Xh", type);
 }
 
 UString sectionTypeToUString(const UINT8 type)
@@ -320,7 +320,7 @@ UString sectionTypeToUString(const UINT8 type)
         case INSYDE_SECTION_POSTCODE:               return UString("Insyde postcode");
         case PHOENIX_SECTION_POSTCODE:              return UString("Phoenix postcode");
     }
-    return usprintf("Unknown 0x%02X", type);
+    return usprintf("Unknown %02Xh", type);
 }
 
 UString bpdtEntryTypeToUString(const UINT16 type)
@@ -373,7 +373,7 @@ UString bpdtEntryTypeToUString(const UINT16 type)
         case BPDT_ENTRY_TYPE_TCCP:        return UString("TCC");
         case BPDT_ENTRY_TYPE_PSEP:        return UString("PSE");
     }
-    return usprintf("Unknown 0x%04X", type);
+    return usprintf("Unknown %04Xh", type);
 }
 
 UString cpdExtensionTypeToUstring(const UINT32 type)
@@ -412,5 +412,5 @@ UString cpdExtensionTypeToUstring(const UINT32 type)
         case CPD_EXT_TYPE_SIGNED_PACKAGE_INFO_EXT:   return UString("Extended Signed Package Info");
         case CPD_EXT_TYPE_SPS_PLATFORM_ID:           return UString("SPS Platform ID");
     }
-    return usprintf("Unknown 0x%08X", type);
+    return usprintf("Unknown %08Xh", type);
 }

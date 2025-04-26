@@ -36,7 +36,7 @@ UString regionTypeToUString(const UINT8 type)
         case Subtypes::PttRegion:         return UString("PTT");
     };
     
-    return  usprintf("Unknown 0x%02X", type);
+    return  usprintf("Unknown %02Xh", type);
 }
 
 UString itemTypeToUString(const UINT8 type)
@@ -87,7 +87,7 @@ UString itemTypeToUString(const UINT8 type)
         case Types::StartupApDataEntry:         return UString("Startup AP data");
     }
     
-    return usprintf("Unknown 0x%02X", type);
+    return usprintf("Unknown %02Xh", type);
 }
 
 UString itemSubtypeToUString(const UINT8 type, const UINT8 subtype)
@@ -199,7 +199,7 @@ UString compressionTypeToUString(const UINT8 algorithm)
         case COMPRESSION_ALGORITHM_ZLIB:                    return UString("Zlib");
     }
     
-    return usprintf("Unknown 0x%02X", algorithm);
+    return usprintf("Unknown %02Xh", algorithm);
 }
 
 UString actionTypeToUString(const UINT8 action)
@@ -214,7 +214,7 @@ UString actionTypeToUString(const UINT8 action)
         case Actions::Rebase:        return UString("Rebase");
     }
     
-    return usprintf("Unknown 0x%02X", action);
+    return usprintf("Unknown %02Xh", action);
 }
 
 UString fitEntryTypeToUString(const UINT8 type)
@@ -244,7 +244,7 @@ UString fitEntryTypeToUString(const UINT8 type)
         case INTEL_FIT_TYPE_EMPTY:                      return UString("Empty");
     }
     
-    return usprintf("Unknown 0x%02X", (type & 0x7F));
+    return usprintf("Unknown %02Xh", (type & 0x7F));
 }
 
 UString hashTypeToUString(const UINT16 algorithm_id)
@@ -258,7 +258,7 @@ UString hashTypeToUString(const UINT16 algorithm_id)
         case TCG_HASH_ALGORITHM_ID_SM3:    return UString("SM3");
     }
     
-    return usprintf("Unknown 0x%04X", algorithm_id);
+    return usprintf("Unknown %04Xh", algorithm_id);
 }
 
 UString insydeFlashDeviceMapEntryTypeGuidToUString(const EFI_GUID & guid)

@@ -87,7 +87,7 @@ USTATUS NvramParser::parseNvarStore(const UModelIndex & index)
                 UByteArray padding = nvar.mid(entry->offset(), unparsedSize);
 
                 // Get info
-                UString info = usprintf("Full size: 0x%X (%u)", (UINT32)padding.size(), (UINT32)padding.size());
+                UString info = usprintf("Full size: %Xh (%u)", (UINT32)padding.size(), (UINT32)padding.size());
 
                 if ((UINT32)padding.count(emptyByte) == unparsedSize) { // Free space
                     // Add tree item
@@ -108,7 +108,7 @@ USTATUS NvramParser::parseNvarStore(const UModelIndex & index)
                 UByteArray guidArea = nvar.right(guidAreaSize);
                 // Get info
                 name = UString("GUID store");
-                info = usprintf("Full size: 0x%X (%u)\nGUIDs in store: %u",
+                info = usprintf("Full size: %Xh (%u)\nGUIDs in store: %u",
                                 (UINT32)guidArea.size(), (UINT32)guidArea.size(),
                                 guidsInStore);
                 // Add tree item
@@ -223,7 +223,7 @@ processing_done:
                 info += usprintf("GUID index: %u\n", entry_body->guid_index());
 
             // Add header, body and extended data info
-            info += usprintf("Full size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0x%X (%u)\nTail size: 0x%X (%u)",
+            info += usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nTail size: %Xh (%u)",
                              entry->size(), entry->size(),
                              (UINT32)header.size(), (UINT32)header.size(),
                              (UINT32)body.size(), (UINT32)body.size(),
@@ -231,7 +231,7 @@ processing_done:
 
             // Add attributes info
             const NVAR_ENTRY_HEADER entryHeader = readUnaligned((NVAR_ENTRY_HEADER*)header.constData());
-            info += usprintf("\nAttributes: 0x%02X", entryHeader.Attributes);
+            info += usprintf("\nAttributes: %02Xh", entryHeader.Attributes);
 
             // Translate attributes to text
             if (entryHeader.Attributes != 0x00 && entryHeader.Attributes != 0xFF)
@@ -239,15 +239,15 @@ processing_done:
 
             // Add next node info
             if (entry->next() != 0xFFFFFF)
-                info += usprintf("\nNext node at offset: 0x%X", localOffset + entry->offset() + (UINT32)entry->next());
+                info += usprintf("\nNext node at offset: %Xh", localOffset + entry->offset() + (UINT32)entry->next());
 
             // Add extended header info
             if (entry_body->extended_header_size() > 0) {
-                info += usprintf("\nExtended header size: 0x%X (%u)",
+                info += usprintf("\nExtended header size: %Xh (%u)",
                                  entry_body->extended_header_size(), entry_body->extended_header_size());
 
                 const UINT8 extendedAttributes = *tail.constData();
-                info += usprintf("\nExtended attributes: 0x%02X (", extendedAttributes) + nvarExtendedAttributesToUString(extendedAttributes) + UString(")");
+                info += usprintf("\nExtended attributes: %02Xh (", extendedAttributes) + nvarExtendedAttributesToUString(extendedAttributes) + UString(")");
 
                 // Add checksum
                 if (!entry_body->_is_null_extended_header_checksum()) {
@@ -266,13 +266,13 @@ processing_done:
                     }
                     // Include entry attributes
                     calculatedChecksum += entryHeader.Attributes;
-                    info += usprintf("\nChecksum: 0x%02X, ", entry_body->extended_header_checksum())
-                     + (calculatedChecksum ? usprintf(", invalid, should be 0x%02X", 0x100 - calculatedChecksum) : UString(", valid"));
+                    info += usprintf("\nChecksum: %02Xh, ", entry_body->extended_header_checksum())
+                     + (calculatedChecksum ? usprintf(", invalid, should be %02Xh", 0x100 - calculatedChecksum) : UString(", valid"));
                 }
 
                 // Add timestamp
                 if (!entry_body->_is_null_extended_header_timestamp())
-                    info += usprintf("\nTimestamp: 0x%" PRIX64, entry_body->extended_header_timestamp());
+                    info += usprintf("\nTimestamp: %" PRIX64 "h", entry_body->extended_header_timestamp());
 
                 // Add hash
                 if (!entry_body->_is_null_extended_header_hash()) {
@@ -375,7 +375,7 @@ USTATUS NvramParser::parseNvramVolumeBody(const UModelIndex & index,const UINT32
             // VSS store at current offset parsed correctly
             // Check if we need to add a padding before it
             if (!outerPadding.isEmpty()) {
-                UString info = usprintf("Full size: 0x%X (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
+                UString info = usprintf("Full size: %Xh (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
                 model->addItem(localOffset + previousStoreEndOffset, Types::Padding, getPaddingType(outerPadding), UString("Padding"), UString(), info, UByteArray(), outerPadding, UByteArray(), Fixed, index);
                 outerPadding.clear();
             }
@@ -395,8 +395,8 @@ USTATUS NvramParser::parseNvramVolumeBody(const UModelIndex & index,const UINT32
                 name = UString("VSS store");
             }
             
-            info = usprintf("Signature: 0x%X (", parsed.signature()) + fourCC(parsed.signature()) + UString(")\n");
-            info += usprintf("Full size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0x%X (%u)\nFormat: 0x%02X\nState: 0x%02X\nReserved: 0x%02X\nReserved1: 0x%04X",
+            info = usprintf("Signature: %Xh (", parsed.signature()) + fourCC(parsed.signature()) + UString(")\n");
+            info += usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nFormat: %02Xh\nState: %02Xh\nReserved: %02Xh\nReserved1: %04Xh",
                             storeSize , storeSize,
                             (UINT32)header.size(), (UINT32)header.size(),
                             (UINT32)body.size(), (UINT32)body.size(),
@@ -419,7 +419,7 @@ USTATUS NvramParser::parseNvramVolumeBody(const UModelIndex & index,const UINT32
                     if (entryOffset < storeSize) {
                         UByteArray freeSpace = vss.mid(entryOffset, storeSize - entryOffset);
                         // Add info
-                        info = usprintf("Full size: 0x%X (%u)", (UINT32)freeSpace.size(), (UINT32)freeSpace.size());
+                        info = usprintf("Full size: %Xh (%u)", (UINT32)freeSpace.size(), (UINT32)freeSpace.size());
                         
                         // Check that remaining unparsed bytes are actually empty
                         if (freeSpace.count(emptyByte) == freeSpace.size()) { // Free space
@@ -497,7 +497,7 @@ USTATUS NvramParser::parseNvramVolumeBody(const UModelIndex & index,const UINT32
                 + (UINT32)(variable->attributes()->apple_data_checksum() << 31);
                 
                 // Add generic info
-                info += usprintf("Full size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0x%X (%u)\nState: 0x%02X\nReserved: 0x%02X\nAttributes: 0x%08X (",
+                info += usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nState: %02Xh\nReserved: %02Xh\nAttributes: %08Xh (",
                                  variableSize, variableSize,
                                  (UINT32)header.size(), (UINT32)header.size(),
                                  (UINT32)body.size(), (UINT32)body.size(),
@@ -508,15 +508,15 @@ USTATUS NvramParser::parseNvramVolumeBody(const UModelIndex & index,const UINT32
                 // Add specific info
                 if (variable->is_auth()) {
                     UINT64 monotonicCounter = (UINT64)variable->len_name() + ((UINT64)variable->len_data() << 32);
-                    info += usprintf("\nMonotonic counter: 0x%" PRIX64 "\nTimestamp: ", monotonicCounter) + efiTimeToUString(*(const EFI_TIME*)variable->timestamp().c_str())
+                    info += usprintf("\nMonotonic counter: %" PRIX64 "h\nTimestamp: ", monotonicCounter) + efiTimeToUString(*(const EFI_TIME*)variable->timestamp().c_str())
                     + usprintf("\nPubKey index: %u", variable->pubkey_index());
                 }
                 else if (!variable->_is_null_apple_data_crc32()) {
                     // Calculate CRC32 of the variable data
                     UINT32 calculatedCrc32 = (UINT32)crc32(0, (const UINT8*)body.constData(), (uInt)body.size());
                     
-                    info += usprintf("\nData checksum: 0x%08X", variable->apple_data_crc32()) +
-                    (variable->apple_data_crc32() != calculatedCrc32 ? usprintf(", invalid, should be 0x%08X", calculatedCrc32) : UString(", valid"));
+                    info += usprintf("\nData checksum: %08Xh", variable->apple_data_crc32()) +
+                    (variable->apple_data_crc32() != calculatedCrc32 ? usprintf(", invalid, should be %08Xh", calculatedCrc32) : UString(", valid"));
                 }
                 
                 // Add tree item
@@ -578,7 +578,7 @@ not_vss:
             // VSS2 store at current offset parsed correctly
             // Check if we need to add a padding before it
             if (!outerPadding.isEmpty()) {
-                info = usprintf("Full size: 0x%X (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
+                info = usprintf("Full size: %Xh (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
                 model->addItem(localOffset + previousStoreEndOffset, Types::Padding, getPaddingType(outerPadding), UString("Padding"), UString(), info, UByteArray(), outerPadding, UByteArray(), Fixed, index);
                 outerPadding.clear();
             }
@@ -599,7 +599,7 @@ not_vss:
                 info = UString("Signature: DDCF3617-3275-4164-98B6-FE85707FFE7D\n");
             }
             
-            info += usprintf("Full size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0x%X (%u)\nFormat: 0x%02X\nState: 0x%02X\nReserved: 0x%02X\nReserved1: 0x%04X",
+            info += usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nFormat: %02Xh\nState: %02Xh\nReserved: %02Xh\nReserved1: %04Xh",
                             storeSize, storeSize,
                             (UINT32)header.size(), (UINT32)header.size(),
                             (UINT32)body.size(), (UINT32)body.size(),
@@ -622,7 +622,7 @@ not_vss:
                     if (entryOffset < storeSize) {
                         UByteArray freeSpace = vss2.mid(entryOffset, storeSize - entryOffset);
                         // Add info
-                        info = usprintf("Full size: 0x%X (%u)", (UINT32)freeSpace.size(), (UINT32)freeSpace.size());
+                        info = usprintf("Full size: %Xh (%u)", (UINT32)freeSpace.size(), (UINT32)freeSpace.size());
                         
                         // Check that remaining unparsed bytes are actually empty
                         if (freeSpace.count(emptyByte) == freeSpace.size()) { // Free space
@@ -680,7 +680,7 @@ not_vss:
                 + (UINT32)(variable->attributes()->reserved() << 7);
                 
                 // Add generic info
-                info += usprintf("Full size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0x%X (%u)\nState: 0x%02X\nReserved: 0x%02X\nAttributes: 0x%08X (",
+                info += usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nState: %02Xh\nReserved: %02Xh\nAttributes: %08Xh (",
                                  variableSize, variableSize,
                                  (UINT32)header.size(), (UINT32)header.size(),
                                  (UINT32)body.size(), (UINT32)body.size(),
@@ -691,7 +691,7 @@ not_vss:
                 // Add specific info
                 if (variable->is_auth()) {
                     UINT64 monotonicCounter = (UINT64)variable->len_name() + ((UINT64)variable->len_data() << 32);
-                    info += usprintf("\nMonotonic counter: 0x%" PRIX64 "\nTimestamp: ", monotonicCounter) + efiTimeToUString(*(const EFI_TIME*)variable->timestamp().c_str())
+                    info += usprintf("\nMonotonic counter: %" PRIX64 "h\nTimestamp: ", monotonicCounter) + efiTimeToUString(*(const EFI_TIME*)variable->timestamp().c_str())
                     + usprintf("\nPubKey index: %u", variable->pubkey_index());
                 }
                 
@@ -739,7 +739,7 @@ not_vss2:
             }
             else {
                 // No need to parse further, unknown FTW store size
-                msg(usprintf("%s: can not determine FTW store size for candidate at base 0x%08X", __FUNCTION__, model->base(index) + localOffset + storeOffset), index);
+                msg(usprintf("%s: can not determine FTW store size for candidate at base %08Xh", __FUNCTION__, model->base(index) + localOffset + storeOffset), index);
                 goto not_ftw;
             }
             storeSize = MIN(volumeBodySize - storeOffset, storeSize);
@@ -777,7 +777,7 @@ not_vss2:
             // FTW store at current offset parsed correctly
             // Check if we need to add a padding before it
             if (!outerPadding.isEmpty()) {
-                UString info = usprintf("Full size: 0x%X (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
+                UString info = usprintf("Full size: %Xh (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
                 model->addItem(localOffset + previousStoreEndOffset, Types::Padding, getPaddingType(outerPadding), UString("Padding"), UString(), info, UByteArray(), outerPadding, UByteArray(), Fixed, index);
                 outerPadding.clear();
             }
@@ -788,12 +788,12 @@ not_vss2:
             // Add info
             name = UString("FTW store");
             info = UString("Signature: ") + guidToUString(*(const EFI_GUID*)guid.constData(), false);
-            info += usprintf("\nFull size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0x%X (%u)\nState: 0x%02X\nHeader CRC32: 0x%08X",
+            info += usprintf("\nFull size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nState: %02Xh\nHeader CRC32: %08Xh",
                              (UINT32)storeSize, (UINT32)storeSize,
                              (UINT32)header.size(), (UINT32)header.size(),
                              (UINT32)body.size(), (UINT32)body.size(),
                              parsed.state(),
-                             parsed.crc()) + (parsed.crc() != calculatedCrc ? usprintf(", invalid, should be 0x%08X", calculatedCrc) : UString(", valid"));
+                             parsed.crc()) + (parsed.crc() != calculatedCrc ? usprintf(", invalid, should be %08Xh", calculatedCrc) : UString(", valid"));
             
             // Add header tree item
             model->addItem(localOffset + storeOffset, Types::FtwStore, 0, name, UString(), info, header, body, UByteArray(), Fixed, index);
@@ -826,7 +826,7 @@ not_ftw:
             // Insyde FDC store at current offset parsed correctly
             // Check if we need to add a padding before it
             if (!outerPadding.isEmpty()) {
-                UString info = usprintf("Full size: 0x%X (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
+                UString info = usprintf("Full size: %Xh (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
                 model->addItem(localOffset + previousStoreEndOffset, Types::Padding, getPaddingType(outerPadding), UString("Padding"), UString(), info, UByteArray(), outerPadding, UByteArray(), Fixed, index);
                 outerPadding.clear();
             }
@@ -837,7 +837,7 @@ not_ftw:
             
             // Add info
             name = UString("Insyde FDC store");
-            info = usprintf("Signature: _FDC\nFull size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0x%X (%u)",
+            info = usprintf("Signature: _FDC\nFull size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)",
                                     storeSize, storeSize,
                                     (UINT32)header.size(), (UINT32)header.size(),
                                     (UINT32)body.size(), (UINT32)body.size());
@@ -877,7 +877,7 @@ not_fdc:
             // Apple SysF/Diag store at current offset parsed correctly
             // Check if we need to add a padding before it
             if (!outerPadding.isEmpty()) {
-                info = usprintf("Full size: 0x%X (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
+                info = usprintf("Full size: %Xh (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
                 model->addItem(localOffset + previousStoreEndOffset, Types::Padding, getPaddingType(outerPadding), UString("Padding"), UString(), info, UByteArray(), outerPadding, UByteArray(), Fixed, index);
                 outerPadding.clear();
             }
@@ -898,13 +898,13 @@ not_fdc:
                 name = UString("Apple Diag store");
                 info = UString("Signature: Gaid\n");
             }
-            info += usprintf("Full size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0x%X (%u)\nUnknown: 0x%02X\nUnknown1: 0x%08X\nCRC32: 0x%08X",
+            info += usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nUnknown: %02Xh\nUnknown1: %08Xh\nCRC32: %08Xh",
                             storeSize, storeSize,
                             (UINT32)header.size(), (UINT32)header.size(),
                             (UINT32)body.size(), (UINT32)body.size(),
                             parsed.unknown(),
                             parsed.unknown1(),
-                            parsed.crc())  + (parsed.crc() != calculatedCrc ? usprintf(", invalid, should be 0x%08X", calculatedCrc) : UString(", valid"));
+                            parsed.crc())  + (parsed.crc() != calculatedCrc ? usprintf(", invalid, should be %08Xh", calculatedCrc) : UString(", valid"));
             
             // Add header tree item
             UModelIndex headerIndex = model->addItem(localOffset + storeOffset, Types::SysFStore, 0, name, UString(), info, header, body, UByteArray(), Fixed, index);
@@ -933,7 +933,7 @@ not_fdc:
                 }
                 // Add generic info
                 UINT32 variableSize = (UINT32)header.size() + (UINT32)body.size();
-                info = usprintf("Full size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0x%X (%u)\n",
+                info = usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\n",
                                  variableSize, variableSize,
                                  (UINT32)header.size(), (UINT32)header.size(),
                                  (UINT32)body.size(), (UINT32)body.size());
@@ -948,7 +948,7 @@ not_fdc:
             if (entryOffset < storeSize) {
                 UByteArray freeSpace = volumeBody.mid(storeOffset + entryOffset, storeSize - entryOffset);
                 // Add info
-                info = usprintf("Full size: 0x%X (%u)", (UINT32)freeSpace.size(), (UINT32)freeSpace.size());
+                info = usprintf("Full size: %Xh (%u)", (UINT32)freeSpace.size(), (UINT32)freeSpace.size());
                 
                 // Check that remaining unparsed bytes are actually zeroes
                 if (freeSpace.count('\x00') == freeSpace.size() - 4) { // Free space, 4 last bytes are always CRC32
@@ -990,7 +990,7 @@ not_sysf:
             // Phoenix FlashMap store at current offset parsed correctly
             // Check if we need to add a padding before it
             if (!outerPadding.isEmpty()) {
-                info = usprintf("Full size: 0x%X (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
+                info = usprintf("Full size: %Xh (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
                 model->addItem(localOffset + previousStoreEndOffset, Types::Padding, getPaddingType(outerPadding), UString("Padding"), UString(), info, UByteArray(), outerPadding, UByteArray(), Fixed, index);
                 outerPadding.clear();
             }
@@ -1001,7 +1001,7 @@ not_sysf:
             
             // Add info
             name = UString("Phoenix SCT flash map");
-            info = usprintf("Signature: _FLASH_MAP\nFull size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0x%X (%u)\nEntries: %u\nReserved: 0x%08X",
+            info = usprintf("Signature: _FLASH_MAP\nFull size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nEntries: %u\nReserved: %08Xh",
                                     storeSize, storeSize,
                                     (UINT32)header.size(), (UINT32)header.size(),
                                     (UINT32)body.size(), (UINT32)body.size(),
@@ -1033,7 +1033,7 @@ not_sysf:
 
                 // Add info
                 UINT32 entrySize = (UINT32)header.size();
-                info = usprintf("Full size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0h (0)\nData type: 0x%04X\nEntry type: 0x%04X\nSize: 0x%08X\nOffset: 0x%08X\nPhysical address: 0x%" PRIX64,
+                info = usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: 0h (0)\nData type: %04Xh\nEntry type: %04Xh\nSize: %08Xh\nOffset: %08Xh\nPhysical address: %" PRIX64 "h",
                                 entrySize, entrySize,
                                 (UINT32)header.size(), (UINT32)header.size(),
                                 entry->data_type(),
@@ -1078,7 +1078,7 @@ not_flm:
             // Phoenix EVSA store at current offset parsed correctly
             // Check if we need to add a padding before it
             if (!outerPadding.isEmpty()) {
-                info = usprintf("Full size: 0x%X (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
+                info = usprintf("Full size: %Xh (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
                 model->addItem(localOffset + previousStoreEndOffset, Types::Padding, getPaddingType(outerPadding), UString("Padding"), UString(), info, UByteArray(), outerPadding, UByteArray(), Fixed, index);
                 outerPadding.clear();
             }
@@ -1092,14 +1092,14 @@ not_flm:
             
             // Add info
             name = UString("Phoenix EVSA store");
-            info = usprintf("Signature: EVSA\nFull size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0x%X (%u)\nAttributes: 0x%08X\nReserved: 0x%08X\nChecksum: 0x%02X",
+            info = usprintf("Signature: EVSA\nFull size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nAttributes: %08Xh\nReserved: %08Xh\nChecksum: %02Xh",
                             storeSize, storeSize,
                             (UINT32)header.size(), (UINT32)header.size(),
                             (UINT32)body.size(), (UINT32)body.size(),
                             parsed.attributes(),
                             parsed.reserved(),
                             parsed.checksum())
-            + (parsed.checksum() != calculated ? usprintf(", invalid, should be 0x%02X", calculated) : UString(", valid"));
+            + (parsed.checksum() != calculated ? usprintf(", invalid, should be %02Xh", calculated) : UString(", valid"));
             
             // Add header tree item
             UModelIndex headerIndex = model->addItem(localOffset + storeOffset, Types::EvsaStore, 0, name, UString(), info, header, body, UByteArray(), Fixed, index);
@@ -1118,7 +1118,7 @@ not_flm:
                     if (entryOffset < storeSize) {
                         UByteArray freeSpace = volumeBody.mid(storeOffset + entryOffset, storeSize - entryOffset);
                         // Add info
-                        info = usprintf("Full size: 0x%X (%u)", (UINT32)freeSpace.size(), (UINT32)freeSpace.size());
+                        info = usprintf("Full size: %Xh (%u)", (UINT32)freeSpace.size(), (UINT32)freeSpace.size());
                         
                         // Check that remaining unparsed bytes are actually empty
                         if (freeSpace.count(emptyByte) == freeSpace.size()) { // Free space
@@ -1145,14 +1145,14 @@ not_flm:
                     EFI_GUID guid = *(const EFI_GUID*)(guidEntry->guid().c_str());
                     name = guidToUString(guid);
                     info = UString("GUID: ") + guidToUString(guid, false)
-                    + usprintf("\nFull size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0x%X (%u)\nType: 0x%02X\nChecksum: 0x%02X",
+                    + usprintf("\nFull size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nType: %02Xh\nChecksum: %02Xh",
                                entrySize, entrySize,
                                (UINT32)header.size(), (UINT32)header.size(),
                                (UINT32)body.size(), (UINT32)body.size(),
                                entry->entry_type(),
                                entry->checksum())
-                    + (entry->checksum() != calculated ? usprintf(", invalid, should be 0x%02X", calculated) : UString(", valid"))
-                    + usprintf("\nGuidId: 0x%04X", guidEntry->guid_id());
+                    + (entry->checksum() != calculated ? usprintf(", invalid, should be %02Xh", calculated) : UString(", valid"))
+                    + usprintf("\nGuidId: %04Xh", guidEntry->guid_id());
                     subtype = Subtypes::GuidEvsaEntry;
                     guidMap.insert(std::pair<UINT16, EFI_GUID>(guidEntry->guid_id(), guid));
                 }
@@ -1164,14 +1164,14 @@ not_flm:
                     entrySize = (UINT32)(header.size() + body.size());
                     name = uFromUcs2(body.constData());
                     info = UString("Name: ") + name
-                    + usprintf("\nFull size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0x%X (%u)\nType: 0x%02X\nChecksum: 0x%02X",
+                    + usprintf("\nFull size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nType: %02Xh\nChecksum: %02Xh",
                                entrySize, entrySize,
                                (UINT32)header.size(), (UINT32)header.size(),
                                (UINT32)body.size(), (UINT32)body.size(),
                                entry->entry_type(),
                                entry->checksum())
-                    + (entry->checksum() != calculated ? usprintf(", invalid, should be 0x%02X", calculated) : UString(", valid"))
-                    + usprintf("\nVarId: 0x%04X", nameEntry->var_id());
+                    + (entry->checksum() != calculated ? usprintf(", invalid, should be %02Xh", calculated) : UString(", valid"))
+                    + usprintf("\nVarId: %04Xh", nameEntry->var_id());
                     subtype = Subtypes::NameEvsaEntry;
                     nameMap.insert(std::pair<UINT16, UString>(nameEntry->var_id(), name));
                 }
@@ -1203,14 +1203,14 @@ not_flm:
                     + (dataEntry->attributes()->extended_header() << 28)
                     + (UINT32)(dataEntry->attributes()->reserved1() << 29);
                     
-                    info = usprintf("Full size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0x%X (%u)\nType: 0x%02X\nChecksum: 0x%02X",
+                    info = usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nType: %02Xh\nChecksum: %02Xh",
                                     entrySize, entrySize,
                                     (UINT32)header.size(), (UINT32)header.size(),
                                     (UINT32)body.size(), (UINT32)body.size(),
                                     entry->entry_type(),
                                     entry->checksum())
-                    + (entry->checksum() != calculated ? usprintf(", invalid, should be 0x%02X", calculated) : UString(", valid"))
-                    + usprintf("\nVarId: 0x%04X\nGuidId: 0x%04X\nAttributes: 0x%08X (",
+                    + (entry->checksum() != calculated ? usprintf(", invalid, should be %02Xh", calculated) : UString(", valid"))
+                    + usprintf("\nVarId: %04Xh\nGuidId: %04Xh\nAttributes: %08Xh (",
                                dataEntry->var_id(),
                                dataEntry->guid_id(),
                                attributes)
@@ -1295,7 +1295,7 @@ not_flm:
             // CMDB store at current offset parsed correctly
             // Check if we need to add a padding before it
             if (!outerPadding.isEmpty()) {
-                info = usprintf("Full size: 0x%X (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
+                info = usprintf("Full size: %Xh (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
                 model->addItem(localOffset + previousStoreEndOffset, Types::Padding, getPaddingType(outerPadding), UString("Padding"), UString(), info, UByteArray(), outerPadding, UByteArray(), Fixed, index);
                 outerPadding.clear();
             }
@@ -1306,7 +1306,7 @@ not_flm:
             
             // Add info
             name = UString("Phoenix CMDB store");
-            info = usprintf("Signature: CMDB\nFull size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0x%X (%u)",
+            info = usprintf("Signature: CMDB\nFull size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)",
                             storeSize, storeSize,
                             (UINT32)header.size(), (UINT32)header.size(),
                             (UINT32)body.size(), (UINT32)body.size());
@@ -1344,7 +1344,7 @@ not_cmdb:
             // SLIC PubKey at current offset parsed correctly
             // Check if we need to add a padding before it
             if (!outerPadding.isEmpty()) {
-                info = usprintf("Full size: 0x%X (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
+                info = usprintf("Full size: %Xh (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
                 model->addItem(localOffset + previousStoreEndOffset, Types::Padding, getPaddingType(outerPadding), UString("Padding"), UString(), info, UByteArray(), outerPadding, UByteArray(), Fixed, index);
                 outerPadding.clear();
             }
@@ -1354,8 +1354,8 @@ not_cmdb:
             
             // Add info
             name = UString("SLIC pubkey");
-            info = usprintf("Type: 0h\nFull size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0h (0)\n"
-                            "Key type: 0x%02X\nVersion: 0x%02X\nAlgorithm: 0x%08X\nMagic: RSA1\nBit length: 0x%08X\nExponent: 0x%08X",
+            info = usprintf("Type: 0h\nFull size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: 0h (0)\n"
+                            "Key type: %02Xh\nVersion: %02Xh\nAlgorithm: %08Xh\nMagic: RSA1\nBit length: %08Xh\nExponent: %08Xh",
                             parsed.len_pubkey(), parsed.len_pubkey(),
                             parsed.len_pubkey(), parsed.len_pubkey(),
                             parsed.key_type(),
@@ -1404,7 +1404,7 @@ not_pubkey:
             // SLIC marker at current offset parsed correctly
             // Check if we need to add a padding before it
             if (!outerPadding.isEmpty()) {
-                info = usprintf("Full size: 0x%X (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
+                info = usprintf("Full size: %Xh (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
                 model->addItem(localOffset + previousStoreEndOffset, Types::Padding, getPaddingType(outerPadding), UString("Padding"), UString(), info, UByteArray(), outerPadding, UByteArray(), Fixed, index);
                 outerPadding.clear();
             }
@@ -1414,8 +1414,8 @@ not_pubkey:
             
             // Add info
             name = UString("SLIC marker");
-            info = usprintf("Type: 1h\nFull size: 0x%X (%u)\nHeader size: 0x%X (%u)\nBody size: 0h (0)\n"
-                            "Version: 0x%08X\nOEM ID: %s\nOEM table ID: %s\nWindows flag: WINDOWS \nSLIC version: 0x%08X",
+            info = usprintf("Type: 1h\nFull size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: 0h (0)\n"
+                            "Version: %08Xh\nOEM ID: %s\nOEM table ID: %s\nWindows flag: WINDOWS \nSLIC version: %08Xh",
                             parsed.len_marker(), parsed.len_marker(),
                             parsed.len_marker(), parsed.len_marker(),
                             parsed.version(),
@@ -1465,7 +1465,7 @@ not_marker:
             // All checks passed, microcode found
             // Check if we need to add a padding before it
             if (!outerPadding.isEmpty()) {
-                info = usprintf("Full size: 0x%X (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
+                info = usprintf("Full size: %Xh (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
                 model->addItem(localOffset + previousStoreEndOffset, Types::Padding, getPaddingType(outerPadding), UString("Padding"), UString(), info, UByteArray(), outerPadding, UByteArray(), Fixed, index);
                 outerPadding.clear();
             }
@@ -1523,7 +1523,7 @@ not_ffs_volume:
     // Add padding at the very end
     if (!outerPadding.isEmpty()) {
         // Add info
-        UString info = usprintf("Full size: 0x%X (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
+        UString info = usprintf("Full size: %Xh (%u)", (UINT32)outerPadding.size(), (UINT32)outerPadding.size());
         
         // Check that remaining unparsed bytes are actually empty
         if (outerPadding.count(emptyByte) == outerPadding.size()) {

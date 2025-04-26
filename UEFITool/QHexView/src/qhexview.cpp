@@ -788,6 +788,7 @@ void QHexView::drawDocument(QTextCursor& c) const {
         else if(m_options.linebackground.isValid() && !(line % 2))
             bf.setBackground(m_options.linebackground);
 
+        bf.setLineHeight(this->lineHeight(), QTextBlockFormat::FixedHeight); // UEFITool: added to fix an issue with Hi-DPI displays on Windows
         c.setBlockFormat(bf);
         c.insertBlock({});
         if(m_hexdocument->isEmpty())

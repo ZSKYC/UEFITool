@@ -757,8 +757,6 @@ void UEFITool::openImageFile(QString path)
 
     // Update menu
     updateRecentFilesMenu(currentPath);
-
-    ui->structureTreeView->expandToDepth(1);
 }
 
 void UEFITool::enableMessagesCopyActions(QListWidgetItem* item)

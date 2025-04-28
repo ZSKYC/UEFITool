@@ -1171,127 +1171,144 @@ USTATUS FfsParser::parseRawArea(const UModelIndex & index)
                         break;
                     }
                     
-                    // This is a normal entry
+                    // Check entry format to be known
+                    bool formatKnown = true;
                     // Check state to be known
                     if (entry->state() != DVAR_ENTRY_STATE_STORING &&
                         entry->state() != DVAR_ENTRY_STATE_STORED &&
                         entry->state() != DVAR_ENTRY_STATE_DELETING &&
                         entry->state() != DVAR_ENTRY_STATE_DELETED){
-                        // TODO: Add the rest as padding, as we encountered an unexpected entry and can't guarantee that the rest got parsed correctly
+                        formatKnown = false;
+                        msg(usprintf("%s: DVAR entry with unknown state %02X", __FUNCTION__, entry->state()), headerIndex);
                     }
                     
                     // Check flags to be known
                     if (entry->flags() != DVAR_ENTRY_FLAG_NAME_ID &&
                         entry->flags() != DVAR_ENTRY_FLAG_NAME_ID + DVAR_ENTRY_FLAG_NAMESPACE_GUID) {
-                        // TODO: Add the rest as padding, as we encountered an unexpected entry and can't guarantee that the rest got parsed correctly
+                        formatKnown = false;
+                        msg(usprintf("%s: DVAR entry with unknown flags %02X", __FUNCTION__, entry->flags()), headerIndex);
                     }
                     
                     // Check type to be known
                     if (entry->type() != DVAR_ENTRY_TYPE_NAME_ID_8_DATA_SIZE_8 &&
                         entry->type() != DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_8 &&
                         entry->type() != DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_16) {
-                        // TODO: Add the rest as padding, as we encountered an unexpected entry and can't guarantee that the rest got parsed correctly
+                        formatKnown = false;
+                        msg(usprintf("%s: DVAR entry with unknown type %02X", __FUNCTION__, entry->type()), headerIndex);
                     }
                     
-                    UINT32 headerSize;
-                    UINT32 bodySize;
-                    UINT32 entrySize;
-                    UINT32 nameId;
-                    UINT8 subtype;
-                    UString text;
-                    
-                    // TODO: find a Dell image with NameUtf8 entries
-                    
-                    // NamespaceGUID entry
-                    if (entry->flags() == DVAR_ENTRY_FLAG_NAME_ID + DVAR_ENTRY_FLAG_NAMESPACE_GUID) {
-                        // State of this variable only applies to the NameId part, not the NamespaceGuid part
-                        // This kind of variables with deleted state till need to be shown as valid
-                        subtype = Subtypes::NamespaceGuidDvarEntry;
-                        EFI_GUID guid = *(const EFI_GUID*)(entry->namespace_guid().c_str());
-                        headerSize = sizeof(DVAR_ENTRY_HEADER) + sizeof(EFI_GUID);
-                        if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_8_DATA_SIZE_8) {
-                            nameId = entry->name_id_8();
-                            bodySize = entry->len_data_8();
-                            headerSize += sizeof(UINT8) + sizeof(UINT8);
-                        }
-                        else if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_8) {
-                            nameId = entry->name_id_16();
-                            bodySize = entry->len_data_8();
-                            headerSize += sizeof(UINT16) + sizeof(UINT8);
-                        }
-                        else if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_16) {
-                            nameId = entry->name_id_16();
-                            bodySize = entry->len_data_16();
-                            headerSize += sizeof(UINT16) + sizeof(UINT16);
-                        }
+                    // This is an unknown entry
+                    if (!formatKnown) {
+                        // No way to continue from here, because we can not be sure that the rest of the store got parsed correctly
+                        UByteArray padding = data.mid(entryOffset, storeSize - entryOffset);
                         
-                        entrySize = headerSize + bodySize;
-                        header = dvar.mid(entryOffset, headerSize);
-                        body = dvar.mid(entryOffset + headerSize, bodySize);
-                       
-                        name = usprintf("%X:%X", entry->namespace_id(), nameId);
-                        text = guidToUString(guid);
-                        info = usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nState: %02Xh\nFlags: %02Xh\nType: %02Xh\nNamespaceId: %Xh\nNameId: %Xh\n",
-                                        entrySize, entrySize,
-                                        (UINT32)header.size(), (UINT32)header.size(),
-                                        (UINT32)body.size(), (UINT32)body.size(),
-                                        entry->state(),
-                                        entry->flags(),
-                                        entry->type(),
-                                        entry->namespace_id(),
-                                        nameId)
-                            + UString("NamespaceGuid: ") + guidToUString(guid, false);
+                        // Get info
+                        name = UString("Padding");
+                        info = usprintf("Full size: %Xh (%u)", (UINT32)padding.size(), (UINT32)padding.size());
+                        
+                        // Add tree item
+                        model->addItem(entryOffset, Types::Padding, getPaddingType(padding), name, UString(), info, UByteArray(), padding, UByteArray(), Fixed, headerIndex);
                     }
-                    // NameId entry
+                    // This is a normal entry
                     else {
-                        subtype = Subtypes::NameIdDvarEntry;
-                        headerSize = sizeof(DVAR_ENTRY_HEADER);
-                        if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_8_DATA_SIZE_8) {
-                            nameId = entry->name_id_8();
-                            bodySize = entry->len_data_8();
-                            headerSize += sizeof(UINT8) + sizeof(UINT8);
+                        UINT32 headerSize;
+                        UINT32 bodySize;
+                        UINT32 entrySize;
+                        UINT32 nameId;
+                        UINT8 subtype;
+                        UString text;
+                        
+                        // NamespaceGUID entry
+                        if (entry->flags() == DVAR_ENTRY_FLAG_NAME_ID + DVAR_ENTRY_FLAG_NAMESPACE_GUID) {
+                            // State of this variable only applies to the NameId part, not the NamespaceGuid part
+                            // This kind of variables with deleted state till need to be shown as valid
+                            subtype = Subtypes::NamespaceGuidDvarEntry;
+                            EFI_GUID guid = *(const EFI_GUID*)(entry->namespace_guid().c_str());
+                            headerSize = sizeof(DVAR_ENTRY_HEADER) + sizeof(EFI_GUID);
+                            if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_8_DATA_SIZE_8) {
+                                nameId = entry->name_id_8();
+                                bodySize = entry->len_data_8();
+                                headerSize += sizeof(UINT8) + sizeof(UINT8);
+                            }
+                            else if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_8) {
+                                nameId = entry->name_id_16();
+                                bodySize = entry->len_data_8();
+                                headerSize += sizeof(UINT16) + sizeof(UINT8);
+                            }
+                            else if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_16) {
+                                nameId = entry->name_id_16();
+                                bodySize = entry->len_data_16();
+                                headerSize += sizeof(UINT16) + sizeof(UINT16);
+                            }
+                            
+                            entrySize = headerSize + bodySize;
+                            header = dvar.mid(entryOffset, headerSize);
+                            body = dvar.mid(entryOffset + headerSize, bodySize);
+                            
+                            name = usprintf("%X:%X", entry->namespace_id(), nameId);
+                            text = guidToUString(guid);
+                            info = usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nState: %02Xh\nFlags: %02Xh\nType: %02Xh\nNamespaceId: %Xh\nNameId: %Xh\n",
+                                            entrySize, entrySize,
+                                            (UINT32)header.size(), (UINT32)header.size(),
+                                            (UINT32)body.size(), (UINT32)body.size(),
+                                            entry->state(),
+                                            entry->flags(),
+                                            entry->type(),
+                                            entry->namespace_id(),
+                                            nameId)
+                            + UString("NamespaceGuid: ") + guidToUString(guid, false);
                         }
-                        else if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_8) {
-                            nameId = entry->name_id_16();
-                            bodySize = entry->len_data_8();
-                            headerSize += sizeof(UINT16) + sizeof(UINT8);
-                        }
-                        else if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_16) {
-                            nameId = entry->name_id_16();
-                            bodySize = entry->len_data_16();
-                            headerSize += sizeof(UINT16) + sizeof(UINT16);
+                        // NameId entry
+                        else {
+                            subtype = Subtypes::NameIdDvarEntry;
+                            headerSize = sizeof(DVAR_ENTRY_HEADER);
+                            if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_8_DATA_SIZE_8) {
+                                nameId = entry->name_id_8();
+                                bodySize = entry->len_data_8();
+                                headerSize += sizeof(UINT8) + sizeof(UINT8);
+                            }
+                            else if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_8) {
+                                nameId = entry->name_id_16();
+                                bodySize = entry->len_data_8();
+                                headerSize += sizeof(UINT16) + sizeof(UINT8);
+                            }
+                            else if (entry->type() == DVAR_ENTRY_TYPE_NAME_ID_16_DATA_SIZE_16) {
+                                nameId = entry->name_id_16();
+                                bodySize = entry->len_data_16();
+                                headerSize += sizeof(UINT16) + sizeof(UINT16);
+                            }
+                            
+                            entrySize = headerSize + bodySize;
+                            header = dvar.mid(entryOffset, headerSize);
+                            body = dvar.mid(entryOffset + headerSize, bodySize);
+                            
+                            name = usprintf("%X:%X", entry->namespace_id(), nameId);
+                            info = usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nState: %02Xh\nFlags: %02Xh\nType: %02Xh\nNamespaceId: %Xh\nNameId: %Xh\n",
+                                            entrySize, entrySize,
+                                            (UINT32)header.size(), (UINT32)header.size(),
+                                            (UINT32)body.size(), (UINT32)body.size(),
+                                            entry->state(),
+                                            entry->flags(),
+                                            entry->type(),
+                                            entry->namespace_id(),
+                                            nameId);
                         }
                         
-                        entrySize = headerSize + bodySize;
-                        header = dvar.mid(entryOffset, headerSize);
-                        body = dvar.mid(entryOffset + headerSize, bodySize);
-                       
-                        name = usprintf("%X:%X", entry->namespace_id(), nameId);
-                        info = usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nState: %02Xh\nFlags: %02Xh\nType: %02Xh\nNamespaceId: %Xh\nNameId: %Xh\n",
-                                        entrySize, entrySize,
-                                        (UINT32)header.size(), (UINT32)header.size(),
-                                        (UINT32)body.size(), (UINT32)body.size(),
-                                        entry->state(),
-                                        entry->flags(),
-                                        entry->type(),
-                                        entry->namespace_id(),
-                                        nameId);
-                    }
-
-                    // Mark NameId entries that are not stored as Invalid
-                    if (entry->flags() != DVAR_ENTRY_FLAG_NAME_ID + DVAR_ENTRY_FLAG_NAMESPACE_GUID &&
-                        (entry->state() == DVAR_ENTRY_STATE_STORING ||
+                        // Mark NameId entries that are not stored as Invalid
+                        if (entry->flags() != DVAR_ENTRY_FLAG_NAME_ID + DVAR_ENTRY_FLAG_NAMESPACE_GUID &&
+                            (entry->state() == DVAR_ENTRY_STATE_STORING ||
                              entry->state() == DVAR_ENTRY_STATE_DELETING ||
                              entry->state() == DVAR_ENTRY_STATE_DELETED)) {
-                        subtype = Subtypes::InvalidDvarEntry;
-                        name = UString("Invalid");
-                        text.clear();
+                            subtype = Subtypes::InvalidDvarEntry;
+                            name = UString("Invalid");
+                            text.clear();
+                        }
+                        
+                        // Add tree item
+                        model->addItem(entryOffset, Types::DellDvarEntry, subtype, name, text, info, header, body, UByteArray(), Fixed, headerIndex);
+                        
+                        entryOffset += entrySize;
                     }
-                    
-                    // Add tree item
-                    model->addItem(entryOffset, Types::DellDvarEntry, subtype, name, text, info, header, body, UByteArray(), Fixed, headerIndex);
-                    
-                    entryOffset += entrySize;
                 }
             }
             catch (...) {

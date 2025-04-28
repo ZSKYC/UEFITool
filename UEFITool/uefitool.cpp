@@ -92,6 +92,9 @@ markingEnabled(true)
     
     // Read stored settings
     readSettings();
+
+    // Update recent files list in menu
+    updateRecentFilesMenu();
 }
 
 UEFITool::~UEFITool()
@@ -210,6 +213,38 @@ void UEFITool::updateUiForNewColorScheme(Qt::ColorScheme scheme)
     QApplication::setPalette(QApplication::style()->standardPalette());
 }
 #endif
+
+void UEFITool::updateRecentFilesMenu(const QString& fileName)
+{
+    // Update list
+    if (!fileName.isEmpty()) {
+        recentFiles.removeAll(fileName);
+        recentFiles.prepend(fileName);
+        while (recentFiles.size() > 21) {
+            recentFiles.removeLast();
+        }
+    }
+
+    // Delete old actions
+    for (QAction* action : recentFileActions) {
+        ui->menuFile->removeAction(action);
+        delete action;
+    }
+    recentFileActions.clear();
+
+    if (!recentFiles.isEmpty()) {
+        // Insert new actions before "Quit"
+        for (const QString& path : recentFiles) {
+            QAction* action = new QAction(QDir::toNativeSeparators(path), this);
+            connect(action, SIGNAL(triggered()), this, SLOT(openRecentImageFile()));
+            action->setData(path);
+            ui->menuFile->insertAction(ui->actionQuit, action);
+            recentFileActions.append(action);
+        }
+        // Finally, insert a separator after the list and before "Quit"
+        recentFileActions.append(ui->menuFile->insertSeparator(ui->actionQuit));
+    }
+}
 
 void UEFITool::populateUi(const QItemSelection &selected)
 {
@@ -518,7 +553,7 @@ void UEFITool::extract(const UINT8 mode)
         return;
     }
     
-    name = QDir::toNativeSeparators(currentDir + QDir::separator() + name);
+    name = QDir::toNativeSeparators(extractDir + QDir::separator() + name);
     
     //ui->statusBar->showMessage(name);
     
@@ -568,6 +603,8 @@ void UEFITool::extract(const UINT8 mode)
     outputFile.resize(0);
     outputFile.write(extracted);
     outputFile.close();
+
+    extractDir = QFileInfo(path).absolutePath();
 }
 
 void UEFITool::rebuild()
@@ -621,17 +658,29 @@ void UEFITool::saveImageFile()
 
 void UEFITool::openImageFile()
 {
-    QString path = QFileDialog::getOpenFileName(this, tr("Open BIOS image file"), currentDir, tr("BIOS image files (*.rom *.bin *.cap *scap *.bio *.fd *.wph *.dec);;All files (*)"));
+    QString path = QFileDialog::getOpenFileName(this, tr("Open BIOS image file"), openImageDir, tr("BIOS image files (*.rom *.bin *.cap *scap *.bio *.fd *.wph *.dec);;All files (*)"));
     openImageFile(path);
 }
 
 void UEFITool::openImageFileInNewWindow()
 {
-    QString path = QFileDialog::getOpenFileName(this, tr("Open BIOS image file in new window"), currentDir, tr("BIOS image files (*.rom *.bin *.cap *scap *.bio *.fd *.wph *.dec);;All files (*)"));
+    QString path = QFileDialog::getOpenFileName(this, tr("Open BIOS image file in new window"), openImageDir, tr("BIOS image files (*.rom *.bin *.cap *scap *.bio *.fd *.wph *.dec);;All files (*)"));
     if (path.trimmed().isEmpty())
         return;
     QProcess::startDetached(currentProgramPath, QStringList(path));
 }
+
+void UEFITool::openRecentImageFile()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if (action) {
+        QString fileName = action->data().toString();
+        if (!fileName.isEmpty()) {
+            openImageFile(fileName);
+        }
+    }
+}
+
 
 void UEFITool::openImageFile(QString path)
 {
@@ -701,9 +750,15 @@ void UEFITool::openImageFile(QString path)
     
     // Set current directory
     currentDir = fileInfo.absolutePath();
-    
+    openImageDir = currentDir;
+
     // Set current path
     currentPath = path;
+
+    // Update menu
+    updateRecentFilesMenu(currentPath);
+
+    ui->structureTreeView->expandToDepth(1);
 }
 
 void UEFITool::enableMessagesCopyActions(QListWidgetItem* item)
@@ -945,6 +1000,10 @@ void UEFITool::readSettings()
     ui->structureTreeView->setColumnWidth(3, settings.value("tree/columnWidth3", ui->structureTreeView->columnWidth(3)).toInt());
     markingEnabled = settings.value("tree/markingEnabled", true).toBool();
     ui->actionToggleBootGuardMarking->setChecked(markingEnabled);
+    openImageDir = settings.value("paths/openImageDir", ".").toString();
+    openGuidDatabaseDir = settings.value("paths/openGuidDatabaseDir", ".").toString();
+    extractDir = settings.value("paths/extractDir", ".").toString();
+    recentFiles = settings.value("paths/recentFiles").toStringList();
     
     // Set monospace font
     QString fontName;
@@ -980,6 +1039,10 @@ void UEFITool::writeSettings()
     settings.setValue("tree/markingEnabled", markingEnabled);
     settings.setValue("mainWindow/fontName", currentFont.family());
     settings.setValue("mainWindow/fontSize", currentFont.pointSize());
+    settings.setValue("paths/openImageDir", openImageDir);
+    settings.setValue("paths/openGuidDatabaseDir", openGuidDatabaseDir);
+    settings.setValue("paths/extractDir", extractDir);
+    settings.setValue("paths/recentFiles", recentFiles);
 }
 
 void UEFITool::showFitTable()
@@ -1044,11 +1107,12 @@ void UEFITool::currentTabChanged(int index)
 
 void UEFITool::loadGuidDatabase()
 {
-    QString path = QFileDialog::getOpenFileName(this, tr("Select GUID database file to load"), currentDir, tr("Comma-separated values files (*.csv);;All files (*)"));
+    QString path = QFileDialog::getOpenFileName(this, tr("Select GUID database file to load"), openGuidDatabaseDir, tr("Comma-separated values files (*.csv);;All files (*)"));
     if (!path.isEmpty()) {
         initGuidDatabase(path);
         if (!currentPath.isEmpty() && QMessageBox::Yes == QMessageBox::information(this, tr("New GUID database loaded"), tr("Apply new GUID database on the opened file?\nUnsaved changes and tree position will be lost."), QMessageBox::Yes, QMessageBox::No))
             openImageFile(currentPath);
+        openGuidDatabaseDir = QFileInfo(path).absolutePath();
     }
 }
 

@@ -77,6 +77,7 @@ private slots:
 
     void openImageFile();
     void openImageFileInNewWindow();
+    void openRecentImageFile();
     void saveImageFile();
 
     void search();
@@ -144,9 +145,14 @@ private:
     GoToBaseDialog* goToBaseDialog;
     GoToAddressDialog* goToAddressDialog;
     QClipboard* clipboard;
+    QStringList recentFiles;
+    QList<QAction*> recentFileActions;
     QString currentDir;
     QString currentPath;
     QString currentProgramPath;
+    QString openImageDir;
+    QString openGuidDatabaseDir;
+    QString extractDir;
     QFont currentFont;
     const QString version;
     bool markingEnabled;
@@ -155,6 +161,7 @@ private:
     void dragEnterEvent(QDragEnterEvent* event);
     void dropEvent(QDropEvent* event);
     void contextMenuEvent(QContextMenuEvent* event);
+    void updateRecentFilesMenu(const QString& fileName = QString());
     void readSettings();
     void showParserMessages();
     void showFinderMessages();

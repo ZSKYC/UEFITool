@@ -98,8 +98,8 @@ UString itemSubtypeToUString(const UINT8 type, const UINT8 subtype)
             else if (subtype == Subtypes::UefiImage)                    return UString("UEFI");
             break;
         case Types::Padding:
-            if      (subtype == Subtypes::ZeroPadding)                  return UString("Empty (0x00)");
-            else if (subtype == Subtypes::OnePadding)                   return UString("Empty (0xFF)");
+            if      (subtype == Subtypes::ZeroPadding)                  return UString("Empty (00h)");
+            else if (subtype == Subtypes::OnePadding)                   return UString("Empty (FFh)");
             else if (subtype == Subtypes::DataPadding)                  return UString("Non-empty");
             break;
         case Types::Volume:

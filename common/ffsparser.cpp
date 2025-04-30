@@ -706,12 +706,12 @@ USTATUS FfsParser::parseMeRegion(const UByteArray & me, const UINT32 localOffset
     if (me.size() == me.count('\xFF')) {
         // Further parsing not needed
         emptyRegion = true;
-        info += ("\nState: empty (0xFF)");
+        info += ("\nState: empty (FFh)");
     }
     else if (me.size() == me.count('\x00')) {
         // Further parsing not needed
         emptyRegion = true;
-        info += ("\nState: empty (0x00)");
+        info += ("\nState: empty (00h)");
     }
     else {
         // Search for new signature
@@ -775,12 +775,12 @@ USTATUS FfsParser::parsePdrRegion(const UByteArray & pdr, const UINT32 localOffs
     if (pdr.size() == pdr.count('\xFF')) {
         // Further parsing not needed
         emptyRegion = true;
-        info += ("\nState: empty (0xFF)");
+        info += ("\nState: empty (FFh)");
     }
     else if (pdr.size() == pdr.count('\x00')) {
         // Further parsing not needed
         emptyRegion = true;
-        info += ("\nState: empty (0x00)");
+        info += ("\nState: empty (00h)");
     }
     
     // Add tree item
@@ -811,12 +811,12 @@ USTATUS FfsParser::parseDevExp1Region(const UByteArray & devExp1, const UINT32 l
     if (devExp1.size() == devExp1.count('\xFF')) {
         // Further parsing not needed
         emptyRegion = true;
-        info += ("\nState: empty (0xFF)");
+        info += ("\nState: empty (FFh)");
     }
     else if (devExp1.size() == devExp1.count('\x00')) {
         // Further parsing not needed
         emptyRegion = true;
-        info += ("\nState: empty (0x00)");
+        info += ("\nState: empty (00h)");
     }
     
     // Add tree item
@@ -843,12 +843,12 @@ USTATUS FfsParser::parseGenericRegion(const UINT8 subtype, const UByteArray & re
     if (region.size() == region.count('\xFF')) {
         // Further parsing not needed
         emptyRegion = true;
-        info += ("\nState: empty (0xFF)");
+        info += ("\nState: empty (FFh)");
     }
     else if (region.size() == region.count('\x00')) {
         // Further parsing not needed
         emptyRegion = true;
-        info += ("\nState: empty (0x00)");
+        info += ("\nState: empty (00h)");
     }
     
     // Add tree item
@@ -4947,7 +4947,7 @@ USTATUS FfsParser::parseCpdRegion(const UByteArray & region, const UINT32 localO
     // Sort partitions by offset
     std::sort(partitions.begin(), partitions.end());
     
-    // Because lenghts for all Huffmann-compressed partitions mean nothing at all, we need to split all partitions into 2 classes:
+    // Because lengths for all Huffmann-compressed partitions mean nothing at all, we need to split all partitions into 2 classes:
     // 1. CPD manifest
     // 2. Metadata entries
     UINT32 i = 1; // manifest is index 0, .met partitions start at index 1
@@ -5175,7 +5175,7 @@ make_partition_table_consistent:
                 info += UString("\nHash: ") + UString(hash.toHex().constData());
                 
                 UModelIndex codeIndex = model->addItem(localOffset + partitions[i].ptEntry.Offset.Offset, Types::CpdPartition, Subtypes::CodeCpdPartition, name, UString(), info, UByteArray(), partition, UByteArray(), Fixed, parent);
-                (void)parseRawArea(codeIndex);
+                (void) parseRawArea(codeIndex);
             }
         }
         else if (partitions[i].type == Types::Padding) {

@@ -996,7 +996,7 @@ not_sysf:
             }
             
             // Construct header and body
-            header = volumeBody.left(storeOffset + sizeof(PHOENIX_FLASH_MAP_HEADER));
+            header = volumeBody.mid(storeOffset, sizeof(PHOENIX_FLASH_MAP_HEADER));
             body = volumeBody.mid(storeOffset + header.size(), storeSize - header.size());
             
             // Add info

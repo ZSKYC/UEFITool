@@ -1148,6 +1148,7 @@ USTATUS FfsParser::parseRawArea(const UModelIndex & index)
                 UModelIndex headerIndex = model->addItem(headerSize + itemOffset, Types::DellDvarStore, 0, name, UString(), info, header, body, UByteArray(), Fixed, index);
                 
                 // Add entries
+                std::map<UINT16, EFI_GUID> guidMap;
                 UINT32 entryOffset = parsed.data_offset();
                 for (const auto & entry : *parsed.entries()) {
                     // This is the terminating entry, needs special processing
@@ -1245,8 +1246,8 @@ USTATUS FfsParser::parseRawArea(const UModelIndex & index)
                             header = dvar.mid(entryOffset, headerSize);
                             body = dvar.mid(entryOffset + headerSize, bodySize);
                             
-                            name = usprintf("%X:%X", entry->namespace_id(), nameId);
-                            text = guidToUString(guid);
+                            name = guidToUString(guid);
+                            text = usprintf("%X", nameId);
                             info = usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nState: %02Xh\nFlags: %02Xh\nType: %02Xh\nNamespaceId: %Xh\nNameId: %Xh\n",
                                             entrySize, entrySize,
                                             (UINT32)header.size(), (UINT32)header.size(),
@@ -1257,6 +1258,8 @@ USTATUS FfsParser::parseRawArea(const UModelIndex & index)
                                             entry->namespace_id(),
                                             nameId)
                             + UString("NamespaceGuid: ") + guidToUString(guid, false);
+                            
+                            guidMap.insert(std::pair<UINT8, EFI_GUID>(entry->namespace_id(), guid));
                         }
                         // NameId entry
                         else {
@@ -1282,7 +1285,7 @@ USTATUS FfsParser::parseRawArea(const UModelIndex & index)
                             header = dvar.mid(entryOffset, headerSize);
                             body = dvar.mid(entryOffset + headerSize, bodySize);
                             
-                            name = usprintf("%X:%X", entry->namespace_id(), nameId);
+                            text = usprintf("%X", nameId);
                             info = usprintf("Full size: %Xh (%u)\nHeader size: %Xh (%u)\nBody size: %Xh (%u)\nState: %02Xh\nFlags: %02Xh\nType: %02Xh\nNamespaceId: %Xh\nNameId: %Xh\n",
                                             entrySize, entrySize,
                                             (UINT32)header.size(), (UINT32)header.size(),
@@ -1308,6 +1311,31 @@ USTATUS FfsParser::parseRawArea(const UModelIndex & index)
                         model->addItem(entryOffset, Types::DellDvarEntry, subtype, name, text, info, header, body, UByteArray(), Fixed, headerIndex);
                         
                         entryOffset += entrySize;
+                    }
+                }
+                
+                // Reparse all NameId variables to detect invalid ones and assign name and text to valid ones
+                for (int i = 0; i < model->rowCount(headerIndex); i++) {
+                    UModelIndex current = headerIndex.model()->index(i, 0, headerIndex);
+                    
+                    if (model->subtype(current) == Subtypes::NameIdDvarEntry) {
+                        UByteArray header = model->header(current);
+                        const DVAR_ENTRY_HEADER* nameIdHeader = (const DVAR_ENTRY_HEADER*)header.constData();
+                        UINT8 id = 0xFF - nameIdHeader->NamespaceIdC;
+                        UString guid;
+                        if (guidMap.count(id))
+                            guid = guidToUString(guidMap[id]);
+                        
+                        // Check for variable validity
+                        if (guid.isEmpty()) { // Guid not found
+                            model->setName(current, UString("Invalid"));
+                            model->setText(current, UString());
+                            msg(usprintf("%s: NameId variable with invalid NamespaceGuid", __FUNCTION__), current);
+                        }
+                        else { // Variable is OK, rename it
+                            model->setName(current, guid);
+                            model->addInfo(current, UString("NamespaceGuid: ") + guidToUString(guidMap[id], false));
+                        }
                     }
                 }
             }

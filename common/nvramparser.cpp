@@ -1223,7 +1223,7 @@ not_flm:
                 entryOffset += entrySize;
             }
             
-            // Reparse all data variables to detect invalid ones and assign name and test to valid ones
+            // Reparse all data variables to detect invalid ones and assign name and text to valid ones
             for (int i = 0; i < model->rowCount(headerIndex); i++) {
                 UModelIndex current = headerIndex.model()->index(i, 0, headerIndex);
                 

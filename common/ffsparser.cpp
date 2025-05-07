@@ -4840,7 +4840,7 @@ make_partition_table_consistent:
             }
             
             // Check for entry type to be known
-            if (partitions[i].ptEntry.Type > BPDT_ENTRY_TYPE_PSEP) {
+            if (partitions[i].ptEntry.Type > BPDT_ENTRY_TYPE_PSEP && partitions[i].ptEntry.Type != BPDT_ENTRY_TYPE_ADSP) {
                 msg(usprintf("%s: BPDT entry of unknown type found", __FUNCTION__), partitionIndex);
             }
         }

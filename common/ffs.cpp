@@ -372,6 +372,7 @@ UString bpdtEntryTypeToUString(const UINT16 type)
         case BPDT_ENTRY_TYPE_GBST:        return UString("GBST");
         case BPDT_ENTRY_TYPE_TCCP:        return UString("TCC");
         case BPDT_ENTRY_TYPE_PSEP:        return UString("PSE");
+        case BPDT_ENTRY_TYPE_ADSP:        return UString("ADSP");
     }
     return usprintf("Unknown %04Xh", type);
 }

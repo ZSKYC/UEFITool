@@ -80,6 +80,8 @@ private slots:
     void openRecentImageFile();
     void saveImageFile();
 
+    void clearRecentlyOpenedFilesList();
+    
     void search();
     void goToBase();
     void goToAddress();
@@ -112,6 +114,10 @@ private slots:
     void enableMessagesCopyActions(QListWidgetItem* item);
     void clearMessages();
 
+    void copyItemName();
+    void expandWholeSection();
+    void collapseWholeSection();
+
     void toggleBootGuardMarking(bool enabled);
 
     void about();
@@ -124,6 +130,7 @@ private slots:
     void unloadGuidDatabase();
     void loadDefaultGuidDatabase();
     void exportDiscoveredGuids();
+
     void generateReport();
 
     void currentTabChanged(int index);
@@ -169,6 +176,8 @@ private:
     void showSecurityInfo();
     void showBuilderMessages();
 
+    void recursivelyUpdateExpandedState(QModelIndex root, bool state);
+    
     enum {
         TAB_PARSER,
         TAB_FIT,

@@ -73,6 +73,10 @@ markingEnabled(true)
     connect(ui->actionExportDiscoveredGuids, SIGNAL(triggered()), this, SLOT(exportDiscoveredGuids()));
     connect(ui->actionGenerateReport, SIGNAL(triggered()), this, SLOT(generateReport()));
     connect(ui->actionToggleBootGuardMarking, SIGNAL(toggled(bool)), this, SLOT(toggleBootGuardMarking(bool)));
+    connect(ui->actionCopyItemName, SIGNAL(triggered()), this, SLOT(copyItemName()));
+    connect(ui->actionExpandWholeSection, SIGNAL(triggered()), this, SLOT(expandWholeSection()));
+    connect(ui->actionCollapseWholeSection, SIGNAL(triggered()), this, SLOT(collapseWholeSection()));
+    connect(ui->actionClearRecentlyOpenedFilesList, SIGNAL(triggered()), this, SLOT(clearRecentlyOpenedFilesList()));
     connect(QCoreApplication::instance(), SIGNAL(aboutToQuit()), this, SLOT(writeSettings()));
     
     // Enable Drag-and-Drop actions
@@ -233,16 +237,23 @@ void UEFITool::updateRecentFilesMenu(const QString& fileName)
     recentFileActions.clear();
 
     if (!recentFiles.isEmpty()) {
-        // Insert new actions before "Quit"
+        // Enable "Clear recently opened files list" action
+        ui->actionClearRecentlyOpenedFilesList->setEnabled(true);
+        
+        // Insert new actions before "Clear recently opened files list"
         for (const QString& path : recentFiles) {
             QAction* action = new QAction(QDir::toNativeSeparators(path), this);
             connect(action, SIGNAL(triggered()), this, SLOT(openRecentImageFile()));
             action->setData(path);
-            ui->menuFile->insertAction(ui->actionQuit, action);
+            ui->menuFile->insertAction(ui->actionClearRecentlyOpenedFilesList, action);
             recentFileActions.append(action);
         }
         // Finally, insert a separator after the list and before "Quit"
         recentFileActions.append(ui->menuFile->insertSeparator(ui->actionQuit));
+    }
+    else {
+        // Disable "Clear recently opened files list" action
+        ui->actionClearRecentlyOpenedFilesList->setEnabled(false);
     }
 }
 
@@ -319,6 +330,9 @@ void UEFITool::populateUi(const QModelIndex &current)
     ui->actionUncompressedHexView->setDisabled(model->hasEmptyUncompressedData(current));
     ui->actionExtract->setDisabled(model->hasEmptyHeader(current) && model->hasEmptyBody(current) && model->hasEmptyTail(current));
     ui->actionGoToData->setEnabled(type == Types::NvarEntry && subtype == Subtypes::LinkNvarEntry);
+    ui->actionCopyItemName->setDisabled(model->name(current).isEmpty());
+    ui->actionExpandWholeSection->setEnabled(model->rowCount(current) > 0);
+    ui->actionCollapseWholeSection->setEnabled(model->rowCount(current) > 0);
     
     // Disable rebuild for now
     //ui->actionRebuild->setDisabled(type == Types::Region && subtype == Subtypes::DescriptorRegion);
@@ -1153,5 +1167,55 @@ void UEFITool::generateReport()
                 file.close();
             }
         }
+    }
+}
+
+void UEFITool::clearRecentlyOpenedFilesList()
+{
+    recentFiles.clear();
+    updateRecentFilesMenu();
+}
+
+void UEFITool::copyItemName()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    clipboard->clear();
+    clipboard->setText(model->name(index));
+}
+
+void UEFITool::expandWholeSection()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    // Expand the whole section
+    recursivelyUpdateExpandedState(index, true);
+}
+
+void UEFITool::collapseWholeSection()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    // Collapse the whole section
+    ui->structureTreeView->collapse(index);
+    recursivelyUpdateExpandedState(index, false);
+}
+
+void UEFITool::recursivelyUpdateExpandedState(QModelIndex index, bool state)
+{
+    if (!index.isValid())
+        return;
+    
+    ui->structureTreeView->setExpanded(index, state);
+    
+    for (int i = 0; i < model->rowCount(index); i++) {
+        UModelIndex current = model->index(i, 0, index);
+        recursivelyUpdateExpandedState(current, state);
     }
 }

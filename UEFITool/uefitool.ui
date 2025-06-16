@@ -48,11 +48,11 @@
     <item>
      <widget class="QSplitter" name="messagesSplitter">
       <property name="orientation">
-       <enum>Qt::Orientation::Vertical</enum>
+       <enum>Qt::Vertical</enum>
       </property>
       <widget class="QSplitter" name="infoSplitter">
        <property name="orientation">
-        <enum>Qt::Orientation::Horizontal</enum>
+        <enum>Qt::Horizontal</enum>
        </property>
        <widget class="QGroupBox" name="structureGroupBox">
         <property name="title">
@@ -196,7 +196,7 @@
          <item>
           <widget class="QSplitter" name="splitter">
            <property name="orientation">
-            <enum>Qt::Orientation::Horizontal</enum>
+            <enum>Qt::Horizontal</enum>
            </property>
            <widget class="QTableWidget" name="fitTableWidget"/>
           </widget>
@@ -311,7 +311,7 @@
      <x>0</x>
      <y>0</y>
      <width>851</width>
-     <height>33</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -322,6 +322,7 @@
     <addaction name="actionOpenImageFileInNewWindow"/>
     <addaction name="actionSaveImageFile"/>
     <addaction name="separator"/>
+    <addaction name="separator"/>
     <addaction name="actionGenerateReport"/>
     <addaction name="separator"/>
     <addaction name="actionLoadGuidDatabase"/>
@@ -329,8 +330,10 @@
     <addaction name="actionUnloadGuidDatabase"/>
     <addaction name="actionExportDiscoveredGuids"/>
     <addaction name="separator"/>
+    <addaction name="actionClearRecentlyOpenedFilesList"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -345,7 +348,7 @@
     </property>
     <widget class="QMenu" name="menuCapsuleActions">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>&amp;Capsule</string>
@@ -356,10 +359,15 @@
      <addaction name="separator"/>
      <addaction name="actionExtract"/>
      <addaction name="actionExtractBody"/>
+     <addaction name="separator"/>
+     <addaction name="actionCopyItemName"/>
+     <addaction name="separator"/>
+     <addaction name="actionExpandWholeSection"/>
+     <addaction name="actionCollapseWholeSection"/>
     </widget>
     <widget class="QMenu" name="menuImageActions">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>&amp;Image</string>
@@ -367,10 +375,15 @@
      <addaction name="actionHexView"/>
      <addaction name="separator"/>
      <addaction name="actionExtract"/>
+     <addaction name="separator"/>
+     <addaction name="actionCopyItemName"/>
+     <addaction name="separator"/>
+     <addaction name="actionExpandWholeSection"/>
+     <addaction name="actionCollapseWholeSection"/>
     </widget>
     <widget class="QMenu" name="menuRegionActions">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>&amp;Region</string>
@@ -382,10 +395,15 @@
      <addaction name="actionRebuild"/>
      <addaction name="separator"/>
      <addaction name="actionReplace"/>
+     <addaction name="separator"/>
+     <addaction name="actionCopyItemName"/>
+     <addaction name="separator"/>
+     <addaction name="actionExpandWholeSection"/>
+     <addaction name="actionCollapseWholeSection"/>
     </widget>
     <widget class="QMenu" name="menuPaddingActions">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>&amp;Padding</string>
@@ -393,10 +411,15 @@
      <addaction name="actionHexView"/>
      <addaction name="separator"/>
      <addaction name="actionExtract"/>
+     <addaction name="separator"/>
+     <addaction name="actionCopyItemName"/>
+     <addaction name="separator"/>
+     <addaction name="actionExpandWholeSection"/>
+     <addaction name="actionCollapseWholeSection"/>
     </widget>
     <widget class="QMenu" name="menuVolumeActions">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>&amp;Volume</string>
@@ -414,10 +437,15 @@
      <addaction name="separator"/>
      <addaction name="actionReplace"/>
      <addaction name="actionReplaceBody"/>
+     <addaction name="separator"/>
+     <addaction name="actionCopyItemName"/>
+     <addaction name="separator"/>
+     <addaction name="actionExpandWholeSection"/>
+     <addaction name="actionCollapseWholeSection"/>
     </widget>
     <widget class="QMenu" name="menuFileActions">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>&amp;File</string>
@@ -439,10 +467,15 @@
      <addaction name="actionReplaceBody"/>
      <addaction name="separator"/>
      <addaction name="actionRemove"/>
+     <addaction name="separator"/>
+     <addaction name="actionCopyItemName"/>
+     <addaction name="separator"/>
+     <addaction name="actionExpandWholeSection"/>
+     <addaction name="actionCollapseWholeSection"/>
     </widget>
     <widget class="QMenu" name="menuSectionActions">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>&amp;Section</string>
@@ -465,6 +498,11 @@
      <addaction name="actionReplaceBody"/>
      <addaction name="separator"/>
      <addaction name="actionRemove"/>
+     <addaction name="separator"/>
+     <addaction name="actionCopyItemName"/>
+     <addaction name="separator"/>
+     <addaction name="actionExpandWholeSection"/>
+     <addaction name="actionCollapseWholeSection"/>
     </widget>
     <widget class="QMenu" name="menuMessageActions">
      <property name="enabled">
@@ -480,7 +518,7 @@
     </widget>
     <widget class="QMenu" name="menuEntryActions">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>&amp;Entry</string>
@@ -503,10 +541,15 @@
      <addaction name="actionReplaceBody"/>
      <addaction name="separator"/>
      <addaction name="actionRemove"/>
+     <addaction name="separator"/>
+     <addaction name="actionCopyItemName"/>
+     <addaction name="separator"/>
+     <addaction name="actionExpandWholeSection"/>
+     <addaction name="actionCollapseWholeSection"/>
     </widget>
     <widget class="QMenu" name="menuStoreActions">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>S&amp;tore</string>
@@ -526,9 +569,25 @@
      <addaction name="separator"/>
      <addaction name="actionReplace"/>
      <addaction name="actionReplaceBody"/>
+     <addaction name="separator"/>
+     <addaction name="actionCopyItemName"/>
+     <addaction name="separator"/>
+     <addaction name="actionExpandWholeSection"/>
+     <addaction name="actionCollapseWholeSection"/>
+    </widget>
+    <widget class="QMenu" name="menu">
+     <property name="title">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QMenu" name="menu_2">
+     <property name="title">
+      <string/>
+     </property>
     </widget>
     <addaction name="actionGoToBase"/>
     <addaction name="actionGoToAddress"/>
+    <addaction name="separator"/>
     <addaction name="actionSearch"/>
     <addaction name="separator"/>
     <addaction name="menuCapsuleActions"/>
@@ -700,7 +759,7 @@
     <string>F1</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::MenuRole::AboutRole</enum>
+    <enum>QAction::AboutRole</enum>
    </property>
   </action>
   <action name="actionAboutQt">
@@ -711,7 +770,7 @@
     <string>Shift+F1</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::MenuRole::AboutQtRole</enum>
+    <enum>QAction::AboutQtRole</enum>
    </property>
   </action>
   <action name="actionQuit">
@@ -722,7 +781,7 @@
     <string>Alt+X</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::MenuRole::QuitRole</enum>
+    <enum>QAction::QuitRole</enum>
    </property>
   </action>
   <action name="actionSearch">
@@ -835,7 +894,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>&amp;Select item at base...</string>
+    <string>Select item at &amp;base...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+G</string>
@@ -935,6 +994,50 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+E</string>
+   </property>
+  </action>
+  <action name="actionCopyItemName">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Copy item name</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="actionExpandWholeSection">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>E&amp;xpand whole section</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+[</string>
+   </property>
+  </action>
+  <action name="actionCollapseWholeSection">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>C&amp;ollapse whole section</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+]</string>
+   </property>
+  </action>
+  <action name="actionClearRecentlyOpenedFilesList">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Clear recently opened files list</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Backspace</string>
    </property>
   </action>
  </widget>

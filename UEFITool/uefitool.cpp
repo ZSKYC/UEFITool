@@ -15,6 +15,11 @@
 #include "uefitool.h"
 #include "ui_uefitool.h"
 
+#include "../common/zlib/zlib.h"
+#include "../common/digest/sha1.h"
+#include "../common/digest/sha2.h"
+#include "../common/digest/sm3.h"
+
 #if QT_VERSION_MAJOR >= 6
 #include <QStyleHints>
 #endif
@@ -50,7 +55,7 @@ markingEnabled(true)
     connect(ui->actionUncompressedHexView, SIGNAL(triggered()), this, SLOT(uncompressedHexView()));
     connect(ui->actionExtract, SIGNAL(triggered()), this, SLOT(extractAsIs()));
     connect(ui->actionExtractBody, SIGNAL(triggered()), this, SLOT(extractBody()));
-    connect(ui->actionExtractBodyUncompressed, SIGNAL(triggered()), this, SLOT(extractBodyUncompressed()));
+    connect(ui->actionExtractUncompressed, SIGNAL(triggered()), this, SLOT(extractUncompressed()));
     connect(ui->actionInsertInto, SIGNAL(triggered()), this, SLOT(insertInto()));
     connect(ui->actionInsertBefore, SIGNAL(triggered()), this, SLOT(insertBefore()));
     connect(ui->actionInsertAfter, SIGNAL(triggered()), this, SLOT(insertAfter()));
@@ -77,6 +82,24 @@ markingEnabled(true)
     connect(ui->actionExpandWholeSection, SIGNAL(triggered()), this, SLOT(expandWholeSection()));
     connect(ui->actionCollapseWholeSection, SIGNAL(triggered()), this, SLOT(collapseWholeSection()));
     connect(ui->actionClearRecentlyOpenedFilesList, SIGNAL(triggered()), this, SLOT(clearRecentlyOpenedFilesList()));
+    connect(ui->actionHashCrc32, SIGNAL(triggered()), this, SLOT(hashCrc32()));
+    connect(ui->actionHashSha1, SIGNAL(triggered()), this, SLOT(hashSha1()));
+    connect(ui->actionHashSha256, SIGNAL(triggered()), this, SLOT(hashSha256()));
+    connect(ui->actionHashSha384, SIGNAL(triggered()), this, SLOT(hashSha384()));
+    connect(ui->actionHashSha512, SIGNAL(triggered()), this, SLOT(hashSha512()));
+    connect(ui->actionHashSm3, SIGNAL(triggered()), this, SLOT(hashSm3()));
+    connect(ui->actionBodyHashCrc32, SIGNAL(triggered()), this, SLOT(hashBodyCrc32()));
+    connect(ui->actionBodyHashSha1, SIGNAL(triggered()), this, SLOT(hashBodySha1()));
+    connect(ui->actionBodyHashSha256, SIGNAL(triggered()), this, SLOT(hashBodySha256()));
+    connect(ui->actionBodyHashSha384, SIGNAL(triggered()), this, SLOT(hashBodySha384()));
+    connect(ui->actionBodyHashSha512, SIGNAL(triggered()), this, SLOT(hashBodySha512()));
+    connect(ui->actionBodyHashSm3, SIGNAL(triggered()), this, SLOT(hashBodySm3()));
+    connect(ui->actionUncompressedHashCrc32, SIGNAL(triggered()), this, SLOT(hashUncompressedCrc32()));
+    connect(ui->actionUncompressedHashSha1, SIGNAL(triggered()), this, SLOT(hashUncompressedSha1()));
+    connect(ui->actionUncompressedHashSha256, SIGNAL(triggered()), this, SLOT(hashUncompressedSha256()));
+    connect(ui->actionUncompressedHashSha384, SIGNAL(triggered()), this, SLOT(hashUncompressedSha384()));
+    connect(ui->actionUncompressedHashSha512, SIGNAL(triggered()), this, SLOT(hashUncompressedSha512()));
+    connect(ui->actionUncompressedHashSm3, SIGNAL(triggered()), this, SLOT(hashUncompressedSm3()));
     connect(QCoreApplication::instance(), SIGNAL(aboutToQuit()), this, SLOT(writeSettings()));
     
     // Enable Drag-and-Drop actions
@@ -146,6 +169,9 @@ void UEFITool::init()
     ui->menuStoreActions->setEnabled(false);
     ui->menuEntryActions->setEnabled(false);
     ui->menuMessageActions->setEnabled(false);
+    ui->menuHashActions->setEnabled(false);
+    ui->menuHashBodyActions->setEnabled(false);
+    ui->menuHashUncompressedActions->setEnabled(false);
     
     // Create new model ...
     delete model;
@@ -324,15 +350,38 @@ void UEFITool::populateUi(const QModelIndex &current)
                                      || type == Types::CpdStore
                                      );
     
+    bool empty = model->hasEmptyHeader(current) && model->hasEmptyBody(current) && model->hasEmptyTail(current);
+    ui->menuHashActions->setDisabled(empty);
+    ui->menuHashBodyActions->setDisabled(model->hasEmptyBody(current));
+    ui->menuHashUncompressedActions->setDisabled(model->hasEmptyUncompressedData(current));
+    
     // Enable actions
-    ui->actionHexView->setDisabled(model->hasEmptyHeader(current) && model->hasEmptyBody(current) && model->hasEmptyTail(current));
+    ui->actionHexView->setDisabled(empty);
     ui->actionBodyHexView->setDisabled(model->hasEmptyBody(current));
     ui->actionUncompressedHexView->setDisabled(model->hasEmptyUncompressedData(current));
-    ui->actionExtract->setDisabled(model->hasEmptyHeader(current) && model->hasEmptyBody(current) && model->hasEmptyTail(current));
+    ui->actionExtract->setDisabled(empty);
     ui->actionGoToData->setEnabled(type == Types::NvarEntry && subtype == Subtypes::LinkNvarEntry);
     ui->actionCopyItemName->setDisabled(model->name(current).isEmpty());
     ui->actionExpandWholeSection->setEnabled(model->rowCount(current) > 0);
     ui->actionCollapseWholeSection->setEnabled(model->rowCount(current) > 0);
+    ui->actionHashCrc32->setDisabled(empty);
+    ui->actionHashSha1->setDisabled(empty);
+    ui->actionHashSha256->setDisabled(empty);
+    ui->actionHashSha384->setDisabled(empty);
+    ui->actionHashSha512->setDisabled(empty);
+    ui->actionHashSm3->setDisabled(empty);
+    ui->actionBodyHashCrc32->setDisabled(model->hasEmptyBody(current));
+    ui->actionBodyHashSha1->setDisabled(model->hasEmptyBody(current));
+    ui->actionBodyHashSha256->setDisabled(model->hasEmptyBody(current));
+    ui->actionBodyHashSha384->setDisabled(model->hasEmptyBody(current));
+    ui->actionBodyHashSha512->setDisabled(model->hasEmptyBody(current));
+    ui->actionBodyHashSm3->setDisabled(model->hasEmptyBody(current));
+    ui->actionUncompressedHashCrc32->setDisabled(model->hasEmptyUncompressedData(current));
+    ui->actionUncompressedHashSha1->setDisabled(model->hasEmptyUncompressedData(current));
+    ui->actionUncompressedHashSha256->setDisabled(model->hasEmptyUncompressedData(current));
+    ui->actionUncompressedHashSha384->setDisabled(model->hasEmptyUncompressedData(current));
+    ui->actionUncompressedHashSha512->setDisabled(model->hasEmptyUncompressedData(current));
+    ui->actionUncompressedHashSm3->setDisabled(model->hasEmptyUncompressedData(current));
     
     // Disable rebuild for now
     //ui->actionRebuild->setDisabled(type == Types::Region && subtype == Subtypes::DescriptorRegion);
@@ -340,7 +389,7 @@ void UEFITool::populateUi(const QModelIndex &current)
     
     //ui->actionRebuild->setEnabled(type == Types::Volume || type == Types::File || type == Types::Section);
     ui->actionExtractBody->setDisabled(model->hasEmptyBody(current));
-    ui->actionExtractBodyUncompressed->setDisabled(model->hasEmptyUncompressedData(current));
+    ui->actionExtractUncompressed->setDisabled(model->hasEmptyUncompressedData(current));
     //ui->actionRemove->setEnabled(type == Types::Volume || type == Types::File || type == Types::Section);
     //ui->actionInsertInto->setEnabled((type == Types::Volume && subtype != Subtypes::UnknownVolume) ||
     //    (type == Types::File && subtype != EFI_FV_FILETYPE_ALL && subtype != EFI_FV_FILETYPE_RAW && subtype != EFI_FV_FILETYPE_PAD) ||
@@ -548,9 +597,9 @@ void UEFITool::extractBody()
     extract(EXTRACT_MODE_BODY);
 }
 
-void UEFITool::extractBodyUncompressed()
+void UEFITool::extractUncompressed()
 {
-    extract(EXTRACT_MODE_BODY_UNCOMPRESSED);
+    extract(EXTRACT_MODE_UNCOMPRESSED);
 }
 
 void UEFITool::extract(const UINT8 mode)
@@ -586,7 +635,7 @@ void UEFITool::extract(const UINT8 mode)
             default:             path = QFileDialog::getSaveFileName(this, tr("Save object to file"), name + ".bin", tr("Binary files (*.bin);;All files (*)"));
         }
     }
-    else if (mode == EXTRACT_MODE_BODY || mode == EXTRACT_MODE_BODY_UNCOMPRESSED) {
+    else if (mode == EXTRACT_MODE_BODY) {
         switch (type) {
             case Types::Capsule: path = QFileDialog::getSaveFileName(this, tr("Save capsule body to image file"), name + ".rom", tr("Image files (*.rom *.bin);;All files (*)")); break;
             case Types::Volume:  path = QFileDialog::getSaveFileName(this, tr("Save volume body to file"), name + ".vbd", tr("Volume body files (*.vbd *.bin);;All files (*)")); break;
@@ -1218,4 +1267,274 @@ void UEFITool::recursivelyUpdateExpandedState(QModelIndex index, bool state)
         UModelIndex current = model->index(i, 0, index);
         recursivelyUpdateExpandedState(current, state);
     }
+}
+
+void UEFITool::hashCrc32()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->header(index) + model->body(index) + model->tail(index);
+    doCrc32(data);
+}
+
+void UEFITool::hashSha1()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->header(index) + model->body(index) + model->tail(index);
+    doSha1(data);
+}
+
+void UEFITool::hashSha256()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->header(index) + model->body(index) + model->tail(index);
+    doSha256(data);
+}
+
+void UEFITool::hashSha384()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->header(index) + model->body(index) + model->tail(index);
+    doSha384(data);
+}
+
+void UEFITool::hashSha512()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->header(index) + model->body(index) + model->tail(index);
+    doSha512(data);
+}
+
+void UEFITool::hashSm3()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->header(index) + model->body(index) + model->tail(index);
+    doSm3(data);
+}
+
+void UEFITool::hashBodyCrc32()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->body(index);
+    doCrc32(data);
+}
+
+void UEFITool::hashBodySha1()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->body(index);
+    doSha1(data);
+}
+
+void UEFITool::hashBodySha256()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->body(index);
+    doSha256(data);
+}
+
+void UEFITool::hashBodySha384()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->body(index);
+    doSha384(data);
+}
+
+void UEFITool::hashBodySha512()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->body(index);
+    doSha512(data);
+}
+
+void UEFITool::hashBodySm3()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->body(index);
+    doSm3(data);
+}
+
+void UEFITool::hashUncompressedCrc32()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->uncompressedData(index);
+    doCrc32(data);
+}
+
+void UEFITool::hashUncompressedSha1()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->uncompressedData(index);
+    doSha1(data);
+}
+
+void UEFITool::hashUncompressedSha256()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->uncompressedData(index);
+    doSha256(data);
+}
+
+void UEFITool::hashUncompressedSha384()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->uncompressedData(index);
+    doSha384(data);
+}
+
+void UEFITool::hashUncompressedSha512()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->uncompressedData(index);
+    doSha512(data);
+}
+
+void UEFITool::hashUncompressedSm3()
+{
+    QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
+    if (!index.isValid())
+        return;
+    
+    QByteArray data = model->uncompressedData(index);
+    doSm3(data);
+}
+
+void UEFITool::doCrc32(QByteArray data)
+{
+    uint32_t crc = (uint32_t)crc32(0, (const uint8_t*)data.constData(), (unsigned int)data.size());
+    QString value = usprintf("%08X", crc);
+    
+    clipboard->clear();
+    clipboard->setText(value);
+    QMessageBox::information(this, tr("CRC32"), value, QMessageBox::Ok);
+}
+
+void UEFITool::doSha1(QByteArray data)
+{
+    UINT8 digest[SHA1_HASH_SIZE] = {};
+    QString value;
+
+    // SHA1
+    sha1(data.constData(), data.size(), digest);
+    for (UINT8 i = 0; i < SHA1_HASH_SIZE; i++) {
+        value += usprintf("%02X", digest[i]);
+    }
+    
+    clipboard->clear();
+    clipboard->setText(value);
+    QMessageBox::information(this, tr("SHA1"), value, QMessageBox::Ok);
+}
+
+void UEFITool::doSha256(QByteArray data)
+{
+    UINT8 digest[SHA256_HASH_SIZE] = {};
+    QString value;
+
+    // SHA2-256
+    sha256(data.constData(), data.size(), digest);
+    for (UINT8 i = 0; i < SHA256_HASH_SIZE; i++) {
+        value += usprintf("%02X", digest[i]);
+    }
+    
+    clipboard->clear();
+    clipboard->setText(value);
+    QMessageBox::information(this, tr("SHA2-256"), value, QMessageBox::Ok);
+}
+
+void UEFITool::doSha384(QByteArray data)
+{
+    UINT8 digest[SHA384_HASH_SIZE] = {};
+    QString value;
+
+    // SHA2-384
+    sha384(data.constData(), data.size(), digest);
+    for (UINT8 i = 0; i < SHA384_HASH_SIZE; i++) {
+        value += usprintf("%02X", digest[i]);
+    }
+    
+    clipboard->clear();
+    clipboard->setText(value);
+    QMessageBox::information(this, tr("SHA2-384"), value, QMessageBox::Ok);
+}
+
+void UEFITool::doSha512(QByteArray data)
+{
+    UINT8 digest[SHA512_HASH_SIZE] = {};
+    QString value;
+
+    // SHA2-512
+    sha512(data.constData(), data.size(), digest);
+    for (UINT8 i = 0; i < SHA512_HASH_SIZE; i++) {
+        value += usprintf("%02X", digest[i]);
+    }
+    
+    clipboard->clear();
+    clipboard->setText(value);
+    QMessageBox::information(this, tr("SHA2-512"), value, QMessageBox::Ok);
+}
+
+void UEFITool::doSm3(QByteArray data)
+{
+    UINT8 digest[SM3_HASH_SIZE] = {};
+    QString value;
+
+    // SM3
+    sm3(data.constData(), data.size(), digest);
+    for (UINT8 i = 0; i < SM3_HASH_SIZE; i++) {
+        value += usprintf("%02X", digest[i]);
+    }
+    
+    clipboard->clear();
+    clipboard->setText(value);
+    QMessageBox::information(this, tr("SM3"), value, QMessageBox::Ok);
 }

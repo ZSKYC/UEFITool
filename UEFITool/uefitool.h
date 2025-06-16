@@ -94,7 +94,7 @@ private slots:
     void extract(const UINT8 mode);
     void extractAsIs();
     void extractBody();
-    void extractBodyUncompressed();
+    void extractUncompressed();
 
     void insert(const UINT8 mode);
     void insertInto();
@@ -135,6 +135,27 @@ private slots:
 
     void currentTabChanged(int index);
 
+    void hashCrc32();
+    void hashSha1();
+    void hashSha256();
+    void hashSha384();
+    void hashSha512();
+    void hashSm3();
+    
+    void hashBodyCrc32();
+    void hashBodySha1();
+    void hashBodySha256();
+    void hashBodySha384();
+    void hashBodySha512();
+    void hashBodySm3();
+    
+    void hashUncompressedCrc32();
+    void hashUncompressedSha1();
+    void hashUncompressedSha256();
+    void hashUncompressedSha384();
+    void hashUncompressedSha512();
+    void hashUncompressedSm3();
+    
 #if QT_VERSION_MAJOR >= 6 && QT_VERSION_MINOR >= 5
     void updateUiForNewColorScheme(Qt::ColorScheme scheme);
 #endif
@@ -177,6 +198,13 @@ private:
     void showBuilderMessages();
 
     void recursivelyUpdateExpandedState(QModelIndex root, bool state);
+    
+    void doCrc32(QByteArray data);
+    void doSha1(QByteArray data);
+    void doSha256(QByteArray data);
+    void doSha384(QByteArray data);
+    void doSha512(QByteArray data);
+    void doSm3(QByteArray data);
     
     enum {
         TAB_PARSER,

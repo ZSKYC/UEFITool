@@ -38,8 +38,8 @@ USTATUS FfsOperations::extract(const UModelIndex & index, UString & name, UByteA
         extracted.clear();
         extracted += model->body(index);
     }
-    else if (mode == EXTRACT_MODE_BODY_UNCOMPRESSED) {
-        name += UString("_body_uncompressed");
+    else if (mode == EXTRACT_MODE_UNCOMPRESSED) {
+        name += UString("_uncompressed");
         extracted.clear();
         extracted += model->uncompressedData(index);
     }

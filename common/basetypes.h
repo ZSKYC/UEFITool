@@ -146,9 +146,9 @@ typedef ptrdiff_t INTN;
 #define CREATE_MODE_AFTER     3
 
 // Item extract modes
-#define EXTRACT_MODE_AS_IS                 0
-#define EXTRACT_MODE_BODY                  1
-#define EXTRACT_MODE_BODY_UNCOMPRESSED     2
+#define EXTRACT_MODE_AS_IS        0
+#define EXTRACT_MODE_BODY         1
+#define EXTRACT_MODE_UNCOMPRESSED 2
 
 // Item replace modes
 #define REPLACE_MODE_AS_IS    0

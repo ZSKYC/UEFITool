@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>851</width>
+    <width>850</width>
     <height>586</height>
    </rect>
   </property>
@@ -29,7 +29,7 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_1">
+   <layout class="QHBoxLayout" name="horizontalLayout1">
     <property name="spacing">
      <number>0</number>
     </property>
@@ -58,7 +58,7 @@
         <property name="title">
          <string>Structure</string>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <layout class="QHBoxLayout" name="horizontalLayout2">
          <property name="spacing">
           <number>0</number>
          </property>
@@ -105,7 +105,7 @@
         <property name="title">
          <string>Information</string>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <layout class="QHBoxLayout" name="horizontalLayout3">
          <property name="spacing">
           <number>0</number>
          </property>
@@ -148,7 +148,7 @@
         <attribute name="title">
          <string>Parser</string>
         </attribute>
-        <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <layout class="QHBoxLayout" name="horizontalLayout4">
          <property name="spacing">
           <number>0</number>
          </property>
@@ -177,7 +177,7 @@
         <attribute name="title">
          <string>FIT</string>
         </attribute>
-        <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <layout class="QHBoxLayout" name="horizontalLayout5">
          <property name="spacing">
           <number>0</number>
          </property>
@@ -245,7 +245,7 @@
         <attribute name="title">
          <string>Search</string>
         </attribute>
-        <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <layout class="QHBoxLayout" name="horizontalLayout6">
          <property name="spacing">
           <number>0</number>
          </property>
@@ -274,7 +274,7 @@
         <attribute name="title">
          <string>Builder</string>
         </attribute>
-        <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <layout class="QHBoxLayout" name="horizontalLayout7">
          <property name="spacing">
           <number>0</number>
          </property>
@@ -310,7 +310,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>851</width>
+     <width>850</width>
      <height>24</height>
     </rect>
    </property>
@@ -322,7 +322,6 @@
     <addaction name="actionOpenImageFileInNewWindow"/>
     <addaction name="actionSaveImageFile"/>
     <addaction name="separator"/>
-    <addaction name="separator"/>
     <addaction name="actionGenerateReport"/>
     <addaction name="separator"/>
     <addaction name="actionLoadGuidDatabase"/>
@@ -333,7 +332,6 @@
     <addaction name="actionClearRecentlyOpenedFilesList"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
-    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -347,15 +345,16 @@
      <string>&amp;Action</string>
     </property>
     <widget class="QMenu" name="menuCapsuleActions">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
      <property name="title">
       <string>&amp;Capsule</string>
      </property>
      <addaction name="actionHexView"/>
      <addaction name="actionBodyHexView"/>
      <addaction name="actionUncompressedHexView"/>
+     <addaction name="separator"/>
+     <addaction name="menuHashActions"/>
+     <addaction name="menuHashBodyActions"/>
+     <addaction name="menuHashUncompressedActions"/>
      <addaction name="separator"/>
      <addaction name="actionExtract"/>
      <addaction name="actionExtractBody"/>
@@ -366,13 +365,12 @@
      <addaction name="actionCollapseWholeSection"/>
     </widget>
     <widget class="QMenu" name="menuImageActions">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
      <property name="title">
       <string>&amp;Image</string>
      </property>
      <addaction name="actionHexView"/>
+     <addaction name="separator"/>
+     <addaction name="menuHashActions"/>
      <addaction name="separator"/>
      <addaction name="actionExtract"/>
      <addaction name="separator"/>
@@ -382,13 +380,12 @@
      <addaction name="actionCollapseWholeSection"/>
     </widget>
     <widget class="QMenu" name="menuRegionActions">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
      <property name="title">
       <string>&amp;Region</string>
      </property>
      <addaction name="actionHexView"/>
+     <addaction name="separator"/>
+     <addaction name="menuHashActions"/>
      <addaction name="separator"/>
      <addaction name="actionExtract"/>
      <addaction name="separator"/>
@@ -402,13 +399,12 @@
      <addaction name="actionCollapseWholeSection"/>
     </widget>
     <widget class="QMenu" name="menuPaddingActions">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
      <property name="title">
       <string>&amp;Padding</string>
      </property>
      <addaction name="actionHexView"/>
+     <addaction name="separator"/>
+     <addaction name="menuHashActions"/>
      <addaction name="separator"/>
      <addaction name="actionExtract"/>
      <addaction name="separator"/>
@@ -418,15 +414,16 @@
      <addaction name="actionCollapseWholeSection"/>
     </widget>
     <widget class="QMenu" name="menuVolumeActions">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
      <property name="title">
       <string>&amp;Volume</string>
      </property>
      <addaction name="actionHexView"/>
      <addaction name="actionBodyHexView"/>
      <addaction name="actionUncompressedHexView"/>
+     <addaction name="separator"/>
+     <addaction name="menuHashActions"/>
+     <addaction name="menuHashBodyActions"/>
+     <addaction name="menuHashUncompressedActions"/>
      <addaction name="separator"/>
      <addaction name="actionExtract"/>
      <addaction name="actionExtractBody"/>
@@ -444,15 +441,16 @@
      <addaction name="actionCollapseWholeSection"/>
     </widget>
     <widget class="QMenu" name="menuFileActions">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
      <property name="title">
       <string>&amp;File</string>
      </property>
      <addaction name="actionHexView"/>
      <addaction name="actionBodyHexView"/>
      <addaction name="actionUncompressedHexView"/>
+     <addaction name="separator"/>
+     <addaction name="menuHashActions"/>
+     <addaction name="menuHashBodyActions"/>
+     <addaction name="menuHashUncompressedActions"/>
      <addaction name="separator"/>
      <addaction name="actionExtract"/>
      <addaction name="actionExtractBody"/>
@@ -474,9 +472,6 @@
      <addaction name="actionCollapseWholeSection"/>
     </widget>
     <widget class="QMenu" name="menuSectionActions">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
      <property name="title">
       <string>&amp;Section</string>
      </property>
@@ -484,9 +479,13 @@
      <addaction name="actionBodyHexView"/>
      <addaction name="actionUncompressedHexView"/>
      <addaction name="separator"/>
+     <addaction name="menuHashActions"/>
+     <addaction name="menuHashBodyActions"/>
+     <addaction name="menuHashUncompressedActions"/>
+     <addaction name="separator"/>
      <addaction name="actionExtract"/>
      <addaction name="actionExtractBody"/>
-     <addaction name="actionExtractBodyUncompressed"/>
+     <addaction name="actionExtractUncompressed"/>
      <addaction name="separator"/>
      <addaction name="actionRebuild"/>
      <addaction name="separator"/>
@@ -517,15 +516,16 @@
      <addaction name="actionMessagesClear"/>
     </widget>
     <widget class="QMenu" name="menuEntryActions">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
      <property name="title">
       <string>&amp;Entry</string>
      </property>
      <addaction name="actionHexView"/>
      <addaction name="actionBodyHexView"/>
      <addaction name="actionUncompressedHexView"/>
+     <addaction name="separator"/>
+     <addaction name="menuHashActions"/>
+     <addaction name="menuHashBodyActions"/>
+     <addaction name="menuHashUncompressedActions"/>
      <addaction name="separator"/>
      <addaction name="actionGoToData"/>
      <addaction name="separator"/>
@@ -546,17 +546,61 @@
      <addaction name="separator"/>
      <addaction name="actionExpandWholeSection"/>
      <addaction name="actionCollapseWholeSection"/>
+     <addaction name="separator"/>
     </widget>
     <widget class="QMenu" name="menuStoreActions">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
      <property name="title">
       <string>S&amp;tore</string>
      </property>
+     <widget class="QMenu" name="menuHashActions">
+      <property name="title">
+       <string>&amp;Hash</string>
+      </property>
+      <addaction name="actionHashCrc32"/>
+      <addaction name="separator"/>
+      <addaction name="actionHashSha1"/>
+      <addaction name="separator"/>
+      <addaction name="actionHashSha256"/>
+      <addaction name="actionHashSha384"/>
+      <addaction name="actionHashSha512"/>
+      <addaction name="separator"/>
+      <addaction name="actionHashSm3"/>
+     </widget>
+     <widget class="QMenu" name="menuHashBodyActions">
+      <property name="title">
+       <string>Hash &amp;body</string>
+      </property>
+      <addaction name="actionBodyHashCrc32"/>
+      <addaction name="separator"/>
+      <addaction name="actionBodyHashSha1"/>
+      <addaction name="separator"/>
+      <addaction name="actionBodyHashSha256"/>
+      <addaction name="actionBodyHashSha384"/>
+      <addaction name="actionBodyHashSha512"/>
+      <addaction name="separator"/>
+      <addaction name="actionBodyHashSm3"/>
+     </widget>
+     <widget class="QMenu" name="menuHashUncompressedActions">
+      <property name="title">
+       <string>Hash &amp;uncompressed</string>
+      </property>
+      <addaction name="actionUncompressedHashCrc32"/>
+      <addaction name="separator"/>
+      <addaction name="actionUncompressedHashSha1"/>
+      <addaction name="separator"/>
+      <addaction name="actionUncompressedHashSha256"/>
+      <addaction name="actionUncompressedHashSha384"/>
+      <addaction name="actionUncompressedHashSha512"/>
+      <addaction name="separator"/>
+      <addaction name="actionUncompressedHashSm3"/>
+     </widget>
      <addaction name="actionHexView"/>
      <addaction name="actionBodyHexView"/>
      <addaction name="actionUncompressedHexView"/>
+     <addaction name="separator"/>
+     <addaction name="menuHashActions"/>
+     <addaction name="menuHashBodyActions"/>
+     <addaction name="menuHashUncompressedActions"/>
      <addaction name="separator"/>
      <addaction name="actionExtract"/>
      <addaction name="actionExtractBody"/>
@@ -574,16 +618,6 @@
      <addaction name="separator"/>
      <addaction name="actionExpandWholeSection"/>
      <addaction name="actionCollapseWholeSection"/>
-    </widget>
-    <widget class="QMenu" name="menu">
-     <property name="title">
-      <string/>
-     </property>
-    </widget>
-    <widget class="QMenu" name="menu_2">
-     <property name="title">
-      <string/>
-     </property>
     </widget>
     <addaction name="actionGoToBase"/>
     <addaction name="actionGoToAddress"/>
@@ -621,9 +655,6 @@
    <property name="text">
     <string>Insert &amp;after...</string>
    </property>
-   <property name="toolTip">
-    <string>Insert an object from file after selected object</string>
-   </property>
    <property name="shortcut">
     <string>Ctrl+Shift+I</string>
    </property>
@@ -634,9 +665,6 @@
    </property>
    <property name="text">
     <string>Insert b&amp;efore...</string>
-   </property>
-   <property name="toolTip">
-    <string>Insert object from file before selected object</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+I</string>
@@ -649,9 +677,6 @@
    <property name="text">
     <string>Rep&amp;lace as is...</string>
    </property>
-   <property name="toolTip">
-    <string>Replace selected object as is with an object from file</string>
-   </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
    </property>
@@ -662,9 +687,6 @@
    </property>
    <property name="text">
     <string>E&amp;xtract as is...</string>
-   </property>
-   <property name="toolTip">
-    <string>Extract selected object as is to file</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+E</string>
@@ -677,9 +699,6 @@
    <property name="text">
     <string>Extract &amp;body...</string>
    </property>
-   <property name="toolTip">
-    <string>Extract body of selected object to file</string>
-   </property>
    <property name="shortcut">
     <string>Ctrl+Shift+E</string>
    </property>
@@ -691,9 +710,6 @@
    <property name="text">
     <string>Re&amp;move</string>
    </property>
-   <property name="toolTip">
-    <string>Remove selected object</string>
-   </property>
    <property name="shortcut">
     <string>Ctrl+Del</string>
    </property>
@@ -701,9 +717,6 @@
   <action name="actionOpenImageFile">
    <property name="text">
     <string>&amp;Open image file...</string>
-   </property>
-   <property name="toolTip">
-    <string>Open image file</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -716,9 +729,6 @@
    <property name="text">
     <string>Insert &amp;into...</string>
    </property>
-   <property name="toolTip">
-    <string>Insert object from file into selected object</string>
-   </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
    </property>
@@ -730,9 +740,6 @@
    <property name="text">
     <string>&amp;Save image file...</string>
    </property>
-   <property name="toolTip">
-    <string>Save modified image file</string>
-   </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
    </property>
@@ -743,9 +750,6 @@
    </property>
    <property name="text">
     <string>&amp;Rebuild</string>
-   </property>
-   <property name="toolTip">
-    <string>Rebuild selected object</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Space</string>
@@ -802,9 +806,6 @@
    <property name="text">
     <string>Clea&amp;r</string>
    </property>
-   <property name="toolTip">
-    <string>Clear messages</string>
-   </property>
    <property name="shortcut">
     <string>Ctrl+Backspace</string>
    </property>
@@ -815,9 +816,6 @@
    </property>
    <property name="text">
     <string>Replace b&amp;ody...</string>
-   </property>
-   <property name="toolTip">
-    <string>Replace body of selected object with a data from file</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+R</string>
@@ -853,15 +851,12 @@
     <string>Ctrl+Shift+O</string>
    </property>
   </action>
-  <action name="actionExtractBodyUncompressed">
+  <action name="actionExtractUncompressed">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Extract body &amp;uncompressed...</string>
-   </property>
-   <property name="toolTip">
-    <string>Uncompress and extract body of selected object to file</string>
+    <string>Extract &amp;uncompressed...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+E</string>
@@ -962,9 +957,6 @@
    <property name="text">
     <string>Generate &amp;report...</string>
    </property>
-   <property name="toolTip">
-    <string>Generate report</string>
-   </property>
    <property name="shortcut">
     <string>Ctrl+Alt+R</string>
    </property>
@@ -1038,6 +1030,150 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Backspace</string>
+   </property>
+  </action>
+  <action name="actionUncompressedHashCrc32">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>CRC32</string>
+   </property>
+  </action>
+  <action name="actionUncompressedHashSha256">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>SHA2-256</string>
+   </property>
+  </action>
+  <action name="actionUncompressedHashSha384">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>SHA2-384</string>
+   </property>
+  </action>
+  <action name="actionUncompressedHashSha512">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>SHA2-512</string>
+   </property>
+  </action>
+  <action name="actionUncompressedHashSha1">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>SHA1</string>
+   </property>
+  </action>
+  <action name="actionUncompressedHashSm3">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>SM3</string>
+   </property>
+  </action>
+  <action name="actionBodyHashCrc32">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>CRC32</string>
+   </property>
+  </action>
+  <action name="actionBodyHashSha256">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>SHA2-256</string>
+   </property>
+  </action>
+  <action name="actionBodyHashSha384">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>SHA2-384</string>
+   </property>
+  </action>
+  <action name="actionBodyHashSha512">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>SHA2-512</string>
+   </property>
+  </action>
+  <action name="actionBodyHashSha1">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>SHA1</string>
+   </property>
+  </action>
+  <action name="actionBodyHashSm3">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>SM3</string>
+   </property>
+  </action>
+  <action name="actionHashCrc32">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>CRC32</string>
+   </property>
+  </action>
+  <action name="actionHashSha256">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>SHA2-256</string>
+   </property>
+  </action>
+  <action name="actionHashSha384">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>SHA2-384</string>
+   </property>
+  </action>
+  <action name="actionHashSha512">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>SHA2-512</string>
+   </property>
+  </action>
+  <action name="actionHashSha1">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>SHA1</string>
+   </property>
+  </action>
+  <action name="actionHashSm3">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>SM3</string>
    </property>
   </action>
  </widget>

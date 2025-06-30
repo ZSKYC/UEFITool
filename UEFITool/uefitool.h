@@ -115,8 +115,8 @@ private slots:
     void clearMessages();
 
     void copyItemName();
-    void expandWholeSection();
-    void collapseWholeSection();
+    void expandItemRecursively();
+    void collapseItemRecursively();
 
     void toggleBootGuardMarking(bool enabled);
 
@@ -197,7 +197,7 @@ private:
     void showSecurityInfo();
     void showBuilderMessages();
 
-    void recursivelyUpdateExpandedState(QModelIndex root, bool state);
+    void recursivelyUpdateItemExpandedState(QModelIndex root, bool state);
     
     void doCrc32(QByteArray data);
     void doSha1(QByteArray data);

@@ -79,8 +79,8 @@ markingEnabled(true)
     connect(ui->actionGenerateReport, SIGNAL(triggered()), this, SLOT(generateReport()));
     connect(ui->actionToggleBootGuardMarking, SIGNAL(toggled(bool)), this, SLOT(toggleBootGuardMarking(bool)));
     connect(ui->actionCopyItemName, SIGNAL(triggered()), this, SLOT(copyItemName()));
-    connect(ui->actionExpandWholeSection, SIGNAL(triggered()), this, SLOT(expandWholeSection()));
-    connect(ui->actionCollapseWholeSection, SIGNAL(triggered()), this, SLOT(collapseWholeSection()));
+    connect(ui->actionExpandItemRecusrively, SIGNAL(triggered()), this, SLOT(expandItemRecursively()));
+    connect(ui->actionCollapseItemRecusrively, SIGNAL(triggered()), this, SLOT(collapseItemRecursively()));
     connect(ui->actionClearRecentlyOpenedFilesList, SIGNAL(triggered()), this, SLOT(clearRecentlyOpenedFilesList()));
     connect(ui->actionHashCrc32, SIGNAL(triggered()), this, SLOT(hashCrc32()));
     connect(ui->actionHashSha1, SIGNAL(triggered()), this, SLOT(hashSha1()));
@@ -249,6 +249,7 @@ void UEFITool::updateRecentFilesMenu(const QString& fileName)
     // Update list
     if (!fileName.isEmpty()) {
         recentFiles.removeAll(fileName);
+        recentFiles.removeAll(QDir::toNativeSeparators(fileName));
         recentFiles.prepend(fileName);
         while (recentFiles.size() > 21) {
             recentFiles.removeLast();
@@ -263,19 +264,26 @@ void UEFITool::updateRecentFilesMenu(const QString& fileName)
     recentFileActions.clear();
 
     if (!recentFiles.isEmpty()) {
+        int key = 0;
+        
         // Enable "Clear recently opened files list" action
         ui->actionClearRecentlyOpenedFilesList->setEnabled(true);
         
         // Insert new actions before "Clear recently opened files list"
         for (const QString& path : recentFiles) {
             QAction* action = new QAction(QDir::toNativeSeparators(path), this);
+            if (++key < 10)
+                action->setShortcut(QKeySequence(Qt::ALT | (Qt::Key_0 + key)));
+            else if (key == 10)
+                action->setShortcut(QKeySequence(Qt::ALT | Qt::Key_0));
+            
             connect(action, SIGNAL(triggered()), this, SLOT(openRecentImageFile()));
             action->setData(path);
             ui->menuFile->insertAction(ui->actionClearRecentlyOpenedFilesList, action);
             recentFileActions.append(action);
         }
-        // Finally, insert a separator after the list and before "Quit"
-        recentFileActions.append(ui->menuFile->insertSeparator(ui->actionQuit));
+        // Finally, insert a separator after the list and before "Clear recently opened files list" action
+        recentFileActions.append(ui->menuFile->insertSeparator(ui->actionClearRecentlyOpenedFilesList));
     }
     else {
         // Disable "Clear recently opened files list" action
@@ -362,8 +370,8 @@ void UEFITool::populateUi(const QModelIndex &current)
     ui->actionExtract->setDisabled(empty);
     ui->actionGoToData->setEnabled(type == Types::NvarEntry && subtype == Subtypes::LinkNvarEntry);
     ui->actionCopyItemName->setDisabled(model->name(current).isEmpty());
-    ui->actionExpandWholeSection->setEnabled(model->rowCount(current) > 0);
-    ui->actionCollapseWholeSection->setEnabled(model->rowCount(current) > 0);
+    ui->actionExpandItemRecusrively->setEnabled(model->rowCount(current) > 0);
+    ui->actionCollapseItemRecusrively->setEnabled(model->rowCount(current) > 0);
     ui->actionHashCrc32->setDisabled(empty);
     ui->actionHashSha1->setDisabled(empty);
     ui->actionHashSha256->setDisabled(empty);
@@ -1235,17 +1243,17 @@ void UEFITool::copyItemName()
     clipboard->setText(model->name(index));
 }
 
-void UEFITool::expandWholeSection()
+void UEFITool::expandItemRecursively()
 {
     QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
     if (!index.isValid())
         return;
     
     // Expand the whole section
-    recursivelyUpdateExpandedState(index, true);
+    recursivelyUpdateItemExpandedState(index, true);
 }
 
-void UEFITool::collapseWholeSection()
+void UEFITool::collapseItemRecursively()
 {
     QModelIndex index = ui->structureTreeView->selectionModel()->currentIndex();
     if (!index.isValid())
@@ -1253,10 +1261,10 @@ void UEFITool::collapseWholeSection()
     
     // Collapse the whole section
     ui->structureTreeView->collapse(index);
-    recursivelyUpdateExpandedState(index, false);
+    recursivelyUpdateItemExpandedState(index, false);
 }
 
-void UEFITool::recursivelyUpdateExpandedState(QModelIndex index, bool state)
+void UEFITool::recursivelyUpdateItemExpandedState(QModelIndex index, bool state)
 {
     if (!index.isValid())
         return;
@@ -1265,7 +1273,7 @@ void UEFITool::recursivelyUpdateExpandedState(QModelIndex index, bool state)
     
     for (int i = 0; i < model->rowCount(index); i++) {
         UModelIndex current = model->index(i, 0, index);
-        recursivelyUpdateExpandedState(current, state);
+        recursivelyUpdateItemExpandedState(current, state);
     }
 }
 

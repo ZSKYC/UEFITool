@@ -61,6 +61,7 @@ UString jedecIdToUString(UINT8 vendorId, UINT8 deviceId0, UINT8 deviceId1)
         case 0xEF4017: return UString("Winbond W25Q64");
         case 0xEF4018: return UString("Winbond W25Q128");
         case 0xEF4019: return UString("Winbond W25Q256");
+        case 0xEF4020: return UString("Winbond W25Q512");
         case 0xEF6011: return UString("Winbond W25Q10");
         case 0xEF6012: return UString("Winbond W25Q20");
         case 0xEF6013: return UString("Winbond W25Q40");
@@ -95,6 +96,8 @@ UString jedecIdToUString(UINT8 vendorId, UINT8 deviceId0, UINT8 deviceId1)
         case 0xC22618: return UString("Macronix MX25L128");
         case 0xC25E16: return UString("Macronix MX25L32");
         case 0xC27518: return UString("Macronix MX77L12850F");
+        case 0xC27519: return UString("Macronix MX77L25650F");
+        case 0xC2751A: return UString("Macronix MX77L51250F");
         case 0xC29517: return UString("Macronix MX25L64");
 
         // Micron
@@ -112,6 +115,8 @@ UString jedecIdToUString(UINT8 vendorId, UINT8 deviceId0, UINT8 deviceId1)
         case 0x204018: return UString("Micron XM25QH128C");
         case 0x204019: return UString("Micron XM25QH256C");
         case 0x204318: return UString("Micron XM25RH128C");
+        case 0x204319: return UString("Micron XM25RH256C");
+        case 0x204320: return UString("Micron XM25RH512C");
         case 0x207114: return UString("Micron M25PX80");
         case 0x207115: return UString("Micron M25PX16");
         case 0x207116: return UString("Micron M25PX32");
@@ -199,7 +204,9 @@ UString jedecIdToUString(UINT8 vendorId, UINT8 deviceId0, UINT8 deviceId1)
         case 0xC84016: return UString("GigaDevice GD25x32");
         case 0xC84017: return UString("GigaDevice GD25x64");
         case 0xC84018: return UString("GigaDevice GD25x128");
-        case 0xC84019: return UString("GigaDevice GD25x256C");
+        case 0xC84019: return UString("GigaDevice GD25x256");
+        case 0xC8401A: return UString("GigaDevice GD25x512");
+        case 0xC8471A: return UString("GigaDevice GD25B512ME");
         case 0xC86015: return UString("GigaDevice GD25LQ16V");
         case 0xC86017: return UString("GigaDevice GD25Lx64");
         case 0xC86018: return UString("GigaDevice GD25Lx128");

@@ -638,6 +638,7 @@ typedef struct BPDT_ENTRY_ {
 #define BPDT_ENTRY_TYPE_GBST        43
 #define BPDT_ENTRY_TYPE_TCCP        44
 #define BPDT_ENTRY_TYPE_PSEP        45
+#define BPDT_ENTRY_TYPE_EFWP        46
 #define BPDT_ENTRY_TYPE_ADSP        50
 
 // CPD
